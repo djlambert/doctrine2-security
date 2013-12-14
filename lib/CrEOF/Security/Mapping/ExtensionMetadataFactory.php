@@ -103,7 +103,6 @@ class ExtensionMetadataFactory
         $classMetadataFactory = $this->entityManager->getMetadataFactory();
         $useObjectName        = $metadata->name;
 
-        // collect metadata from inherited classes
         if (null !== $metadata->reflClass) {
             foreach (array_reverse(class_parents($metadata->name)) as $parentClass) {
                 // read only inherited mapped classes
@@ -121,14 +120,13 @@ class ExtensionMetadataFactory
             }
 
             $this->driver->readExtendedMetadata($metadata, $config);
+
+            if ($config) {
+                $config['useObjectClass'] = $useObjectName;
+            }
         }
 
-        if ($config) {
-            $config['useObjectClass'] = $useObjectName;
-        }
-
-        // cache the metadata (even if it's empty)
-        // caching empty metadata will prevent re-parsing non-existent annotations
+        // Cache all metadata, caching empty metadata will prevent re-parsing non-existent annotations
         $cacheId = self::getCacheId($metadata->name, $this->extensionNamespace);
 
         if ($cacheDriver = $classMetadataFactory->getCacheDriver()) {

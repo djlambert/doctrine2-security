@@ -13,7 +13,8 @@ define('VENDOR_PATH', realpath(__DIR__ . '/../vendor'));
 
 $loader = require __DIR__ . '/../vendor/autoload.php';
 
-$loader->add('Tool', __DIR__ . '/CrEOF/Security');
+// Test namespaces
+$loader->add('CrEOF\\Security', __DIR__);
 
 // Fixture namespaces
 $loader->add('Fixture', __DIR__ . '/CrEOF/Security');

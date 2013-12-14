@@ -1,27 +1,41 @@
 <?php
 
-namespace Tool;
+namespace CrEOF\Security;
 
-use CrEOF\Security\OwnedEntity\OwnedEntityListener;
+use CrEOF\Security\OwnedEntity\EventSubscriber as OwnedEntityEventSubscriber;
 use CrEOF\Security\Tool\Logging\DBAL\QueryAnalyzer;
 use Doctrine\Common\EventManager;
+use Doctrine\Common\Annotations\AnnotationReader;
+use Doctrine\Common\Annotations\CachedReader;
+use Doctrine\Common\Annotations\Reader;
+use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\ORM\Configuration;
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use Doctrine\ORM\Mapping\DefaultQuoteStrategy;
 use Doctrine\ORM\Mapping\DefaultNamingStrategy;
-use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use Doctrine\ORM\Repository\DefaultRepositoryFactory;
 use Doctrine\ORM\Tools\SchemaTool;
 
 /**
- * ORM tests common code
+ * Common test code
  */
 abstract class AbstractTestCase extends \PHPUnit_Framework_TestCase
 {
     /**
+     * @var Reader
+     */
+    static protected $annotationReader;
+
+    /**
+     * @var string
+     */
+    protected $tempDir;
+
+    /**
      * @var EntityManager
      */
-    protected $em;
+    protected $entityManager;
 
     /**
      * @var QueryAnalyzer
@@ -29,7 +43,24 @@ abstract class AbstractTestCase extends \PHPUnit_Framework_TestCase
     protected $queryAnalyzer;
 
     /**
-     * {@inheritdoc}
+     * Constructor
+     *
+     * Set shared properties
+     */
+    public function __construct()
+    {
+        $this->tempDir = __DIR__ . '/../../temp';
+    }
+
+    /**
+     * Get a list of used fixture classes
+     *
+     * @return array
+     */
+    abstract protected function getUsedEntityFixtures();
+
+    /**
+     * {@inheritDoc}
      */
     protected function setUp()
     {
@@ -37,68 +68,102 @@ abstract class AbstractTestCase extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * @param EntityManager $entityManager
+     *
+     * @return array
+     */
+    protected function getEntityMetadata(EntityManager $entityManager)
+    {
+        $getClassMetadata = function ($class) use ($entityManager) {
+            return $entityManager->getClassMetadata($class);
+        };
+
+        return array_map($getClassMetadata, (array) $this->getUsedEntityFixtures());
+    }
+
+    /**
+     * @param EntityManager $entityManager
+     */
+    protected function createEntitySchema(EntityManager $entityManager)
+    {
+        $schemaTool = new SchemaTool($entityManager);
+
+        $schemaTool->dropSchema([]);
+        $schemaTool->createSchema($this->getEntityMetadata($entityManager));
+    }
+
+    /**
+     * Creates default mapping driver
+     *
+     * @return AnnotationDriver
+     */
+    protected function getMetadataDriverImplementation()
+    {
+        if (null === static::$annotationReader) {
+            static::$annotationReader = new CachedReader(new AnnotationReader(), new ArrayCache());
+        }
+
+        return new AnnotationDriver(static::$annotationReader);
+    }
+
+    /**
      * EntityManager mock object together with annotation mapping driver and pdo_sqlite database in memory
      *
-     * @param EventManager  $evm
      * @param Configuration $config
+     * @param EventManager  $eventManager
      *
      * @return EntityManager
      */
-    protected function getMockSqliteEntityManager(EventManager $evm = null, Configuration $config = null)
+    protected function getMockSqliteEntityManager(Configuration $config = null, EventManager $eventManager = null)
     {
-        $conn = [
+        $config = null === $config ? $this->getMockAnnotatedConfig() : $config;
+        $conn   = [
             'driver' => 'pdo_sqlite',
             'memory' => true,
         ];
-        $config = null === $config ? $this->getMockAnnotatedConfig() : $config;
 
-        return $this->getMockEntityManager($evm, $config, $conn);
+        return $this->getMockEntityManager($conn, $config, $eventManager);
     }
 
     /**
      * EntityManager mock object together with annotation mapping driver and custom connection
      *
-     * @param EventManager $evm
      * @param array        $conn
+     * @param EventManager $eventManager
      *
      * @return EntityManager
      */
-    protected function getMockCustomEntityManager(EventManager $evm = null, array $conn)
+    protected function getMockCustomEntityManager(array $conn, EventManager $eventManager = null)
     {
-        return $this->getMockEntityManager($evm, $this->getMockAnnotatedConfig(), $conn);
+        return $this->getMockEntityManager($conn, $this->getMockAnnotatedConfig(), $eventManager);
     }
 
     /**
-     * @param EventManager  $evm
-     * @param Configuration $config
      * @param array         $conn
+     * @param Configuration $config
+     * @param EventManager  $eventManager
      *
      * @return EntityManager
      */
-    protected function getMockEntityManager(EventManager $evm = null, Configuration $config = null, array $conn)
+    protected function getMockEntityManager(array $conn, Configuration $config = null, EventManager $eventManager = null)
     {
-        $em = EntityManager::create($conn, $config, $evm ?: $this->getEventManager());
-
-        $schema = array_map(function ($class) use ($em) {
-            return $em->getClassMetadata($class);
-        }, (array) $this->getUsedEntityFixtures());
-
-        $schemaTool = new SchemaTool($em);
+        $entityManager = EntityManager::create($conn, $config, $eventManager ?: $this->getEventManager());
+        $schemaTool    = new SchemaTool($entityManager);
 
         $schemaTool->dropSchema([]);
-        $schemaTool->createSchema($schema);
+        $schemaTool->createSchema($this->getEntityMetadata($entityManager));
 
-        return $this->em = $em;
+        return $this->entityManager = $entityManager;
     }
 
     /**
      * EntityManager mock object with annotation mapping driver
      *
-     * @param EventManager $evm
+     * @param EventManager $eventManager
      *
      * @return EntityManager
      */
-    protected function getMockMappedEntityManager(EventManager $evm = null)
+    protected function getMockMappedEntityManager(EventManager $eventManager = null)
     {
         $driver = $this->getMock('Doctrine\DBAL\Driver');
 
@@ -110,9 +175,9 @@ abstract class AbstractTestCase extends \PHPUnit_Framework_TestCase
 
         $conn->expects($this->once())
             ->method('getEventManager')
-            ->will($this->returnValue($evm ?: $this->getEventManager()));
+            ->will($this->returnValue($eventManager ?: $this->getEventManager()));
 
-        return $this->em = EntityManager::create($conn, $this->getMockAnnotatedConfig());
+        return $this->entityManager = EntityManager::create($conn, $this->getMockAnnotatedConfig());
     }
 
     /**
@@ -122,13 +187,13 @@ abstract class AbstractTestCase extends \PHPUnit_Framework_TestCase
      */
     protected function startQueryLog()
     {
-        if (!$this->em || !$this->em->getConnection()->getDatabasePlatform()) {
+        if ( ! $this->entityManager || ! $this->entityManager->getConnection()->getDatabasePlatform()) {
             throw new \RuntimeException('EntityManager and database platform must be initialized');
         }
 
-        $this->queryAnalyzer = new QueryAnalyzer($this->em->getConnection()->getDatabasePlatform());
+        $this->queryAnalyzer = new QueryAnalyzer($this->entityManager->getConnection()->getDatabasePlatform());
 
-        $this->em
+        $this->entityManager
             ->getConfiguration()
             ->expects($this->any())
             ->method('getSQLLogger')
@@ -164,37 +229,6 @@ abstract class AbstractTestCase extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Creates default mapping driver
-     *
-     * @return \Doctrine\ORM\Mapping\Driver\Driver
-     */
-    protected function getMetadataDriverImplementation()
-    {
-        return new AnnotationDriver($_ENV['annotation_reader']);
-    }
-
-    /**
-     * Get a list of used fixture classes
-     *
-     * @return array
-     */
-    abstract protected function getUsedEntityFixtures();
-
-    /**
-     * Build event manager
-     *
-     * @return EventManager
-     */
-    private function getEventManager()
-    {
-        $evm = new EventManager;
-
-        $evm->addEventSubscriber(new OwnedEntityListener());
-
-        return $evm;
-    }
-
-    /**
      * Get annotation mapping configuration
      *
      * @return \Doctrine\ORM\Configuration
@@ -202,19 +236,19 @@ abstract class AbstractTestCase extends \PHPUnit_Framework_TestCase
     protected function getMockAnnotatedConfig()
     {
         // We need to mock every method except the ones which handle the filters
-        $configurationClass = 'Doctrine\ORM\Configuration';
-        $refl               = new \ReflectionClass($configurationClass);
-        $methods            = $refl->getMethods();
+        $configClass      = 'Doctrine\ORM\Configuration';
+        $configReflection = new \ReflectionClass($configClass);
+        $configMethods    = $configReflection->getMethods();
 
         $mockMethods = [];
 
-        foreach ($methods as $method) {
-            if ($method->name !== 'addFilter' && $method->name !== 'getFilterClassName' && $method->name !== 'getEntityListenerResolver') {
+        foreach ($configMethods as $method) {
+            if ($method->name !== 'addFilter' && $method->name !== 'getFilterClassName') {
                 $mockMethods[] = $method->name;
             }
         }
 
-        $config = $this->getMock($configurationClass, $mockMethods);
+        $config = $this->getMock($configClass, $mockMethods);
 
         $config
             ->expects($this->once())
@@ -262,5 +296,19 @@ abstract class AbstractTestCase extends \PHPUnit_Framework_TestCase
             ->will($this->returnValue(new DefaultRepositoryFactory));
 
         return $config;
+    }
+
+    /**
+     * Build event manager
+     *
+     * @return EventManager
+     */
+    private function getEventManager()
+    {
+        $eventManager = new EventManager;
+
+        $eventManager->addEventSubscriber(new OwnedEntityEventSubscriber());
+
+        return $eventManager;
     }
 }

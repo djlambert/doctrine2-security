@@ -52,26 +52,6 @@ class InvalidMappingException extends InvalidArgumentException implements Except
     }
 
     /**
-     * @param string $ownedEntityListenerClass
-     *
-     * @return InvalidMappingException
-     */
-    public static function ownedEntityListenerNotExist($ownedEntityListenerClass)
-    {
-        return new self(sprintf('OwnedEntity listener class "%s" does not exist', $ownedEntityListenerClass));
-    }
-
-    /**
-     * @param string $ownedEntityListenerClass
-     *
-     * @return InvalidMappingException
-     */
-    public static function listenerInterfaceNotImplemented($ownedEntityListenerClass)
-    {
-        return new self(sprintf('OwnedEntity listener class "%s" does not implement EntityListenerInterface', $ownedEntityListenerClass));
-    }
-
-    /**
      * @param string $attributeName
      * @param string $rawValue
      *
@@ -80,5 +60,27 @@ class InvalidMappingException extends InvalidArgumentException implements Except
     public static function attributeValueNotBoolean($attributeName, $rawValue)
     {
         return new self(sprintf("Attribute %s must have a valid boolean value, '%s' found", $attributeName, $rawValue));
+    }
+
+    /**
+     * @param string $ownerColumn
+     * @param string $entity
+     *
+     * @return InvalidMappingException
+     */
+    public static function ownerColumnNotMapped($ownerColumn, $entity)
+    {
+        return new self(sprintf('OwnerColumn "%s" in entity "%s" must be a mapped property', $ownerColumn, $entity));
+    }
+
+    /**
+     * @param string $ownerColumn
+     * @param string $entity
+     *
+     * @return InvalidMappingException
+     */
+    public static function noOwnerColumnAssociation($ownerColumn, $entity)
+    {
+        return new self(sprintf('OwnerColumn "%s" in entity "%s" must have association mapped to entity containing owners', $ownerColumn, $entity));
     }
 }

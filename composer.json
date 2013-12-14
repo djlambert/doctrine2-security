@@ -7,6 +7,12 @@
             "email": "dlambert@dereklambert.com"
         }
     ],
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/djlambert/coding-standards"
+        }
+    ],
     "minimum-stability": "dev",
     "require": {
         "php": ">=5.5",

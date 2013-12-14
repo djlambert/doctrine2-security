@@ -33,6 +33,5 @@ use Doctrine\Common\Annotations\Annotation;
  */
 final class OwnedEntity extends Annotation
 {
-    /** @var string */
-    public $entityListenerClass;
+
 }

@@ -3,7 +3,7 @@
         "This file locks the dependencies of your project to a known state",
         "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file"
     ],
-    "hash": "092e433ab5b80f93f91625e115cc3c5d",
+    "hash": "6ce2f88157f4a882f033604dd482e478",
     "packages": [
         {
             "name": "doctrine/annotations",
@@ -300,12 +300,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/doctrine/dbal.git",
-                "reference": "f3f6b7ddb7d6af6c3fa42882bc0e2e6715c873fd"
+                "reference": "f137925d3c59e70b7f3b8e48aeb401b9bf60303c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/doctrine/dbal/zipball/f3f6b7ddb7d6af6c3fa42882bc0e2e6715c873fd",
-                "reference": "f3f6b7ddb7d6af6c3fa42882bc0e2e6715c873fd",
+                "url": "https://api.github.com/repos/doctrine/dbal/zipball/f137925d3c59e70b7f3b8e48aeb401b9bf60303c",
+                "reference": "f137925d3c59e70b7f3b8e48aeb401b9bf60303c",
                 "shasum": ""
             },
             "require": {
@@ -363,7 +363,7 @@
                 "persistence",
                 "queryobject"
             ],
-            "time": "2013-12-06 11:52:45"
+            "time": "2013-12-13 20:51:18"
         },
         {
             "name": "doctrine/inflector",
@@ -497,12 +497,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/doctrine/doctrine2.git",
-                "reference": "b461c9cf2330ce24a07f8e98b3577b1effeb339e"
+                "reference": "94a3e6c42b6036d4802fc626ea026382af157105"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/doctrine/doctrine2/zipball/b461c9cf2330ce24a07f8e98b3577b1effeb339e",
-                "reference": "b461c9cf2330ce24a07f8e98b3577b1effeb339e",
+                "url": "https://api.github.com/repos/doctrine/doctrine2/zipball/94a3e6c42b6036d4802fc626ea026382af157105",
+                "reference": "94a3e6c42b6036d4802fc626ea026382af157105",
                 "shasum": ""
             },
             "require": {
@@ -565,7 +565,7 @@
                 "database",
                 "orm"
             ],
-            "time": "2013-12-11 05:08:22"
+            "time": "2013-12-11 23:30:15"
         },
         {
             "name": "symfony/console",
@@ -951,12 +951,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit-mock-objects.git",
-                "reference": "8ce9c35f7aa1fc040f9e92f164d1ba9550eb0be9"
+                "reference": "a1a2f93ebf2677ca2bf292a925095f457cd960a5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit-mock-objects/zipball/8ce9c35f7aa1fc040f9e92f164d1ba9550eb0be9",
-                "reference": "8ce9c35f7aa1fc040f9e92f164d1ba9550eb0be9",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit-mock-objects/zipball/a1a2f93ebf2677ca2bf292a925095f457cd960a5",
+                "reference": "a1a2f93ebf2677ca2bf292a925095f457cd960a5",
                 "shasum": ""
             },
             "require": {
@@ -1001,7 +1001,7 @@
                 "mock",
                 "xunit"
             ],
-            "time": "2013-12-04 00:24:39"
+            "time": "2013-12-12 22:23:57"
         },
         {
             "name": "sebastian/diff",

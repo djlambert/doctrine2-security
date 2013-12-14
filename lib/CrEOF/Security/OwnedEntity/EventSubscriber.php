@@ -23,7 +23,8 @@
 
 namespace CrEOF\Security\OwnedEntity;
 
-use CrEOF\Security\Mapping\AbstractEventSubscriber;
+use CrEOF\Security\AbstractEventSubscriber;
+use Doctrine\ORM\Event\LifecycleEventArgs;
 
 /**
  * Class OwnedEntity event subscriber
@@ -33,6 +34,64 @@ use CrEOF\Security\Mapping\AbstractEventSubscriber;
  */
 class EventSubscriber extends AbstractEventSubscriber
 {
+    /**
+     * @var object
+     */
+    protected $owner;
+
+    /**
+     * Specifies the list of events to listen for
+     *
+     * @return array
+     */
+    public function getSubscribedEvents()
+    {
+        return [
+            'loadClassMetadata',
+            'prePersist'
+        ];
+    }
+
+    /**
+     * @param LifecycleEventArgs $args
+     */
+    public function prePersist(LifecycleEventArgs $args)
+    {
+        $entityManager = $this->getEntityManager();
+        $entity        = $args->getEntity();
+        $metadata      = $entityManager->getClassMetadata(get_class($entity));
+
+        if ( ! $config = $this->getConfiguration($metadata->getName())) {
+            return;
+        }
+
+        if (isset($config['ownedEntity'])) {
+            if ($metadata->getReflectionProperty($field = $config['ownerColumn'])->getValue($entity) === null) {
+                $this->updateField($metadata, $entity, $field, $this->getOwner());
+            }
+        }
+    }
+
+    /**
+     * @param object $owner
+     *
+     * @return EventSubscriber
+     */
+    public function setOwner($owner)
+    {
+        $this->owner = $owner;
+
+        return $this;
+    }
+
+    /**
+     * @return object
+     */
+    public function getOwner()
+    {
+        return $this->owner;
+    }
+
     /**
      * {@inheritDoc}
      */

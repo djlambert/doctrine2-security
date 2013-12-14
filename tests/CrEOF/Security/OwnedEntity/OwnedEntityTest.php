@@ -2,13 +2,10 @@
 
 namespace CrEOF\Security\OwnedEntity;
 
+use CrEOF\Security\AbstractTestCase;
 use CrEOF\Security\OwnedEntity\EventSubscriber;
-use Tool\AbstractTestCase;
 use Fixture\Owner;
 use OwnedEntity\Fixture\Article;
-use Doctrine\ORM\Mapping\Driver\DriverChain;
-use Doctrine\ORM\Mapping\Driver\SimplifiedXmlDriver;
-use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use Doctrine\Common\EventManager;
 
 /**
@@ -18,9 +15,11 @@ class OwnedEntityTest extends AbstractTestCase
 {
     const OWNER         = 'Fixture\\Owner';
     const ARTICLE       = 'OwnedEntity\\Fixture\\Article';
+    const FEATURE       = 'OwnedEntity\\Fixture\\Feature';
+    const PICTURE       = 'OwnedEntity\\Fixture\\Picture';
 
     private $eventSubscriber;
-    private $entityListener;
+
     /**
      * Setup
      */
@@ -33,11 +32,6 @@ class OwnedEntityTest extends AbstractTestCase
 
         $evm->addEventSubscriber($this->eventSubscriber);
         $this->getMockSqliteEntityManager($evm);
-
-        $this->entityListener = $this->em->getConfiguration()
-            ->getEntityListenerResolver()
-            ->resolve('CrEOF\Security\OwnedEntity\EntityListener');
-
     }
 
     /**
@@ -47,7 +41,9 @@ class OwnedEntityTest extends AbstractTestCase
     {
         return [
             self::OWNER,
-            self::ARTICLE
+            self::ARTICLE,
+            self::FEATURE,
+            self::PICTURE
         ];
     }
 
@@ -56,11 +52,16 @@ class OwnedEntityTest extends AbstractTestCase
      */
     public function articleTest()
     {
-        $repo = $this->em->getRepository(self::ARTICLE);
+        $repo = $this->entityManager->getRepository(self::ARTICLE);
+
+        $owner = new Owner();
+        $this->entityManager->persist($owner);
 
         $article = new Article;
         $article->setTitle('test');
-        $this->em->persist($article);
-        $this->em->flush();
+        $this->entityManager->persist($article);
+        $this->entityManager->flush();
+
+        $this->entityManager->clear();
     }
 }

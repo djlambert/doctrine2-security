@@ -24,7 +24,6 @@
 namespace CrEOF\Security\OwnedEntity\Mapping;
 
 use CrEOF\Security\Exception\InvalidMappingException;
-use CrEOF\Security\OwnedEntity\EntityListenerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 
 /**
@@ -35,14 +34,15 @@ use Doctrine\ORM\Mapping\ClassMetadata;
  */
 class Validator
 {
-
     /**
      * @param ClassMetadata $metadata
      * @param array         $config
      *
      * @throws InvalidMappingException 13/864
+     *
+     * @return array
      */
-    public function validateMapping(ClassMetadata $metadata, array $config)
+    public function getValidatedMapping(ClassMetadata $metadata, array $config)
     {
         if ($this->isOwnedEntity($config) && ! $this->isOwnerColumnDefined($config)) {
             throw InvalidMappingException::ownerColumnNotDefined();
@@ -53,22 +53,14 @@ class Validator
         }
 
         if ( ! $this->isOwnedEntity($config)) {
-            return;
+            return $config;
         }
 
-        if ( ! class_exists($config['ownedEntityListener'] = $this->getOwnedEntityListener($config))) {
-            throw InvalidMappingException::ownedEntityListenerNotExist($config['ownedEntityListener']);
+        if ( ! $this->hasOwnerColumnAssociation($metadata, $config)) {
+            throw InvalidMappingException::noOwnerColumnAssociation($config['ownerColumn'], $metadata->name);
         }
 
-        $listener = new $config['ownedEntityListener'];
-
-        if ( ! ($listener instanceof EntityListenerInterface)) {
-            throw InvalidMappingException::listenerInterfaceNotImplemented($config['ownedEntityListener']);
-        }
-
-        foreach ($listener->getSubscribedEvents() as $event) {
-            $metadata->addEntityListener($event, $config['ownedEntityListener'], $event); //TODO docs specify method not required
-        }
+        return $config;
     }
 
     /**
@@ -92,16 +84,24 @@ class Validator
     }
 
     /**
-     * @param array $config
+     * @param ClassMetadata $metadata
+     * @param array         $config
      *
-     * @return string
+     * @return bool
      */
-    private function getOwnedEntityListener(array $config)
+    private function isOwnerColumnMapped(ClassMetadata $metadata, array $config)
     {
-        if (isset($config['ownedEntityListener'])) {
-            return $config['ownedEntityListener'];
-        }
+        return $metadata->hasField($config['ownerColumn']);
+    }
 
-        return 'CrEOF\\Security\\OwnedEntity\\EntityListener';
+    /**
+     * @param ClassMetadata $metadata
+     * @param array         $config
+     *
+     * @return bool
+     */
+    private function hasOwnerColumnAssociation(ClassMetadata $metadata, array $config)
+    {
+        return $metadata->hasAssociation($config['ownerColumn']);
     }
 }

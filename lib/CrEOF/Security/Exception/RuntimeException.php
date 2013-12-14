@@ -58,6 +58,6 @@ class RuntimeException extends \RuntimeException implements ExceptionInterface
      */
     public static function entityManagerNotSet()
     {
-        return new self('getEntityManager must be called once with $eventArgs');
+        return new self('EntityManager is not set');
     }
 }

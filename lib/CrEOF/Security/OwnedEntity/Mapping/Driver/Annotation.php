@@ -54,10 +54,6 @@ class Annotation extends AbstractAnnotationDriver
 
         if ($annotation = $this->reader->getClassAnnotation($classRefl, self::OWNED_ENTITY)) {
             $config['ownedEntity'] = true;
-
-            if ($entityListenerClass = $annotation->entityListenerClass) {
-                $config['ownedEntityListenerClass'] = $entityListenerClass;
-            }
         }
 
         foreach ($classRefl->getProperties() as $property) {
@@ -65,11 +61,13 @@ class Annotation extends AbstractAnnotationDriver
                 continue;
             }
 
+            // TODO: throw exception if ownerColumn already set (from parent)
+
             if ($this->reader->getPropertyAnnotation($property, self::OWNER_COLUMN)) {
                 $config['ownerColumn'] = $property->getName();
             }
         }
 
-        (new Validator())->validateMapping($metadata, $config);
+        $config = (new Validator())->getValidatedMapping($metadata, $config);
     }
 }

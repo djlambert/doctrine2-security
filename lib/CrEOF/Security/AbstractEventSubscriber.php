@@ -21,17 +21,18 @@
  * THE SOFTWARE.
  */
 
-namespace CrEOF\Security\Mapping;
+namespace CrEOF\Security;
 
 use CrEOF\Security\Exception\RuntimeException;
+use CrEOF\Security\Mapping\ExtensionMetadataFactory;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Annotations\AnnotationRegistry;
 use Doctrine\Common\Annotations\CachedReader;
 use Doctrine\Common\Annotations\Reader;
 use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\Common\EventSubscriber;
+use Doctrine\Common\NotifyPropertyChanged;
 use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Event\LoadClassMetadataEventArgs;
 use Doctrine\ORM\Mapping\ClassMetadata;
 
@@ -99,33 +100,58 @@ abstract class AbstractEventSubscriber implements EventSubscriber
     }
 
     /**
-     * @param LifecycleEventArgs $eventArgs optional
-     *
-     * @throws RuntimeException
-     *
-     * @return EntityManager
-     */
-    public function getEntityManager(LifecycleEventArgs $eventArgs = null)
-    {
-        if (null !== $this->entityManager) {
-            return $this->entityManager;
-        }
-
-        if (null === $eventArgs) {
-            throw RuntimeException::entityManagerNotSet();
-        }
-
-        return $this->entityManager = $eventArgs->getEntityManager();
-    }
-
-    /**
      * Maps additional metadata for the entity
      *
      * @param LoadClassMetadataEventArgs $eventArgs
      */
     public function loadClassMetadata(LoadClassMetadataEventArgs $eventArgs)
     {
-        $this->loadMetadataForObjectClass($eventArgs->getClassMetadata(), $eventArgs);
+        $this->setEntityManager($eventArgs->getEntityManager())
+            ->loadMetadataForObjectClass($eventArgs->getClassMetadata());
+    }
+
+    /**
+     * Get the configuration for specific object class
+     * if cache driver is present it scans it also
+     *
+     * @param string $className
+     *
+     * @return array
+     */
+    public function getConfiguration($className, EntityManager $entityManager = null)
+    {
+        $config = [];
+
+        if (isset(self::$configurations[$this->listenerName][$className])) {
+            return self::$configurations[$this->listenerName][$className];
+        }
+
+        $entityManager = $entityManager ?: $this->getEntityManager();
+        $factory       = $entityManager->getMetadataFactory();
+        $cacheDriver   = $factory->getCacheDriver();
+
+        if ($cacheDriver) {
+            $cacheId = ExtensionMetadataFactory::getCacheId($className, $this->getNamespace());
+
+            if (false !== ($cached = $cacheDriver->fetch($cacheId))) {
+                $config = self::$configurations[$this->listenerName][$className] = $cached;
+            } else {
+                $this->loadMetadataForObjectClass($factory->getMetadataFor($className));
+
+                if (isset(self::$configurations[$this->listenerName][$className])) {
+                    $config = self::$configurations[$this->listenerName][$className];
+                }
+            }
+
+            $objectClass = isset($config['useObjectClass']) ? $config['useObjectClass'] : $className;
+
+            if ($objectClass !== $className) {
+                $this->getConfiguration($entityManager, $objectClass);
+            }
+
+        }
+
+        return $config;
     }
 
     /**
@@ -136,17 +162,60 @@ abstract class AbstractEventSubscriber implements EventSubscriber
     abstract protected function getNamespace();
 
     /**
-     * Scans metadata for behavior mappings
+     * Update field value using reflection
      *
-     * @param ClassMetadata              $metadata
-     * @param LoadClassMetadataEventArgs $eventArgs optional
+     * @param ClassMetadata $metadata
+     * @param object        $entity
+     * @param string        $field
+     * @param mixed         $value
      */
-    protected function loadMetadataForObjectClass(ClassMetadata $metadata, LoadClassMetadataEventArgs $eventArgs = null)
+    protected function updateField(ClassMetadata $metadata, $entity, $field, $value)
     {
-        if (null !== $eventArgs && null === $this->entityManager) {
-            $this->entityManager = $eventArgs->getEntityManager();
+        $property = $metadata->getReflectionProperty($field);
+        $oldValue = $property->getValue($entity);
+
+        $property->setValue($entity, $value);
+
+        if ($entity instanceof NotifyPropertyChanged) {
+            $unitOfWork = $this->getEntityManager()->getUnitOfWork();
+
+            $unitOfWork->propertyChanged($entity, $field, $oldValue, $value);
+        }
+    }
+
+    /**
+     * @throws RuntimeException
+     *
+     * @return EntityManager
+     */
+    protected function getEntityManager()
+    {
+        if (null !== $this->entityManager) {
+            return $this->entityManager;
         }
 
+        throw RuntimeException::entityManagerNotSet();
+    }
+
+    /**
+     * @param EntityManager $entityManager
+     *
+     * @return AbstractEventSubscriber
+     */
+    protected function setEntityManager(EntityManager $entityManager)
+    {
+        $this->entityManager = $entityManager;
+
+        return $this;
+    }
+
+    /**
+     * Scans metadata for behavior mappings
+     *
+     * @param ClassMetadata $metadata
+     */
+    protected function loadMetadataForObjectClass(ClassMetadata $metadata)
+    {
         try {
             $config = $this->getExtensionMetadataFactory()->getExtensionMetadata($metadata);
         } catch (\ReflectionException $e) {
