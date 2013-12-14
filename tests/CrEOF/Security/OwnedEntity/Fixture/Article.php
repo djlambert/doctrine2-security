@@ -103,4 +103,14 @@ class Article
     {
         return $this->title;
     }
+
+    /**
+     * Get owner
+     *
+     * @return Owner
+     */
+    public function getOwner()
+    {
+        return $this->owner;
+    }
 }

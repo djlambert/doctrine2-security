@@ -50,16 +50,6 @@ class MappingTest extends AbstractTestCase
     /**
      * @test
      */
-    public function nothingCached()
-    {
-        $config = $this->ownedEntityEventSubscriber->getConfiguration(self::ARTICLE, $this->entityManager);
-
-        $this->assertEmpty($config);
-    }
-
-    /**
-     * @test
-     */
     public function cachedConfig()
     {
         $this->createEntitySchema($this->entityManager, [self::ARTICLE]);
