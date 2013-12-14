@@ -89,17 +89,6 @@ class Validator
      *
      * @return bool
      */
-    private function isOwnerColumnMapped(ClassMetadata $metadata, array $config)
-    {
-        return $metadata->hasField($config['ownerColumn']);
-    }
-
-    /**
-     * @param ClassMetadata $metadata
-     * @param array         $config
-     *
-     * @return bool
-     */
     private function hasOwnerColumnAssociation(ClassMetadata $metadata, array $config)
     {
         return $metadata->hasAssociation($config['ownerColumn']);

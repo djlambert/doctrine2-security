@@ -114,7 +114,8 @@ abstract class AbstractEventSubscriber implements EventSubscriber
      * Get the configuration for specific object class
      * if cache driver is present it scans it also
      *
-     * @param string $className
+     * @param string        $className
+     * @param EntityManager $entityManager
      *
      * @return array
      */

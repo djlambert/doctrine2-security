@@ -1,31 +1,20 @@
 <?php
 
 use Doctrine\Common\Annotations\AnnotationRegistry;
-use Doctrine\Common\Annotations\AnnotationReader;
-use Doctrine\Common\Annotations\CachedReader;
-use Doctrine\Common\Cache\ArrayCache;
 use Composer\Autoload\ClassLoader;
-
-
-define('TESTS_PATH', __DIR__);
-define('TESTS_TEMP_DIR', __DIR__ . '/temp');
-define('VENDOR_PATH', realpath(__DIR__ . '/../vendor'));
 
 $loader = require __DIR__ . '/../vendor/autoload.php';
 
-// Test namespaces
-$loader->add('CrEOF\\Security', __DIR__);
+// Add test namespaces
+$loader->add('CrEOF\Security', __DIR__);
 
-// Fixture namespaces
+// Add fixture namespaces
 $loader->add('Fixture', __DIR__ . '/CrEOF/Security');
-$loader->add('OwnedEntity\\Fixture', __DIR__ . '/CrEOF/Security');
-$loader->add('Mapping\\Fixture', __DIR__ . '/CrEOF/Security');
+$loader->add('OwnedEntity\Fixture', __DIR__ . '/CrEOF/Security');
+$loader->add('Mapping\Fixture', __DIR__ . '/CrEOF/Security');
 
+// Register loader with annotation registry
 AnnotationRegistry::registerLoader([$loader, 'loadClass']);
 
+// Register extension annotations annotation registry
 CrEOF\Security\SecurityExtensions::registerAnnotations();
-
-$reader = new AnnotationReader();
-$reader = new CachedReader($reader, new ArrayCache());
-
-$_ENV['annotation_reader'] = $reader;

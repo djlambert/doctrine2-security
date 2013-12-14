@@ -225,3 +225,39 @@
 [10-Dec-2013 18:50:53 America/Chicago] PHP   9. CrEOF\Security\SecurityExtensions::registerAnnotations() /Users/dlambert/Development/doctrine2-security/tests/bootstrap.php:25
 [10-Dec-2013 18:50:53 America/Chicago] PHP  10. Doctrine\Common\Annotations\AnnotationRegistry::registerFile() /Users/dlambert/Development/doctrine2-security/lib/CrEOF/Security/SecurityExtensions.php:74
 [10-Dec-2013 18:50:53 America/Chicago] PHP  11. require_once() /Users/dlambert/Development/doctrine2-security/vendor/doctrine/annotations/lib/Doctrine/Common/Annotations/AnnotationRegistry.php:59
+[14-Dec-2013 15:17:52 America/Chicago] PHP Fatal error:  Class 'CrEOF\Security\AbstractTestCase' not found in /Users/dlambert/Development/doctrine2-security/tests/CrEOF/Security/OwnedEntity/MappingTest.php on line 15
+[14-Dec-2013 15:17:52 America/Chicago] PHP Stack trace:
+[14-Dec-2013 15:17:52 America/Chicago] PHP   1. {main}() /Users/dlambert/Development/doctrine2-security/vendor/phpunit/phpunit/composer/bin/phpunit:0
+[14-Dec-2013 15:17:52 America/Chicago] PHP   2. PHPUnit_TextUI_Command::main() /Users/dlambert/Development/doctrine2-security/vendor/phpunit/phpunit/composer/bin/phpunit:63
+[14-Dec-2013 15:17:52 America/Chicago] PHP   3. PHPUnit_TextUI_Command->run() /Users/dlambert/Development/doctrine2-security/vendor/phpunit/phpunit/PHPUnit/TextUI/Command.php:129
+[14-Dec-2013 15:17:52 America/Chicago] PHP   4. PHPUnit_TextUI_Command->handleArguments() /Users/dlambert/Development/doctrine2-security/vendor/phpunit/phpunit/PHPUnit/TextUI/Command.php:138
+[14-Dec-2013 15:17:52 America/Chicago] PHP   5. PHPUnit_Util_Configuration->getTestSuiteConfiguration() /Users/dlambert/Development/doctrine2-security/vendor/phpunit/phpunit/PHPUnit/TextUI/Command.php:657
+[14-Dec-2013 15:17:52 America/Chicago] PHP   6. PHPUnit_Util_Configuration->getTestSuite() /Users/dlambert/Development/doctrine2-security/vendor/phpunit/phpunit/PHPUnit/Util/Configuration.php:797
+[14-Dec-2013 15:17:52 America/Chicago] PHP   7. PHPUnit_Framework_TestSuite->addTestFiles() /Users/dlambert/Development/doctrine2-security/vendor/phpunit/phpunit/PHPUnit/Util/Configuration.php:873
+[14-Dec-2013 15:17:52 America/Chicago] PHP   8. PHPUnit_Framework_TestSuite->addTestFile() /Users/dlambert/Development/doctrine2-security/vendor/phpunit/phpunit/PHPUnit/Framework/TestSuite.php:416
+[14-Dec-2013 15:17:52 America/Chicago] PHP   9. PHPUnit_Util_Fileloader::checkAndLoad() /Users/dlambert/Development/doctrine2-security/vendor/phpunit/phpunit/PHPUnit/Framework/TestSuite.php:355
+[14-Dec-2013 15:17:52 America/Chicago] PHP  10. PHPUnit_Util_Fileloader::load() /Users/dlambert/Development/doctrine2-security/vendor/phpunit/phpunit/PHPUnit/Util/Fileloader.php:76
+[14-Dec-2013 15:17:52 America/Chicago] PHP  11. include_once() /Users/dlambert/Development/doctrine2-security/vendor/phpunit/phpunit/PHPUnit/Util/Fileloader.php:92
+[14-Dec-2013 15:18:17 America/Chicago] PHP Fatal error:  Class 'CrEOF\Security\AbstractTestCase' not found in /Users/dlambert/Development/doctrine2-security/tests/CrEOF/Security/OwnedEntity/MappingTest.php on line 15
+[14-Dec-2013 15:18:17 America/Chicago] PHP Stack trace:
+[14-Dec-2013 15:18:17 America/Chicago] PHP   1. {main}() /Users/dlambert/Development/doctrine2-security/vendor/phpunit/phpunit/composer/bin/phpunit:0
+[14-Dec-2013 15:18:17 America/Chicago] PHP   2. PHPUnit_TextUI_Command::main() /Users/dlambert/Development/doctrine2-security/vendor/phpunit/phpunit/composer/bin/phpunit:63
+[14-Dec-2013 15:18:17 America/Chicago] PHP   3. PHPUnit_TextUI_Command->run() /Users/dlambert/Development/doctrine2-security/vendor/phpunit/phpunit/PHPUnit/TextUI/Command.php:129
+[14-Dec-2013 15:18:17 America/Chicago] PHP   4. PHPUnit_TextUI_Command->handleArguments() /Users/dlambert/Development/doctrine2-security/vendor/phpunit/phpunit/PHPUnit/TextUI/Command.php:138
+[14-Dec-2013 15:18:17 America/Chicago] PHP   5. PHPUnit_Util_Configuration->getTestSuiteConfiguration() /Users/dlambert/Development/doctrine2-security/vendor/phpunit/phpunit/PHPUnit/TextUI/Command.php:657
+[14-Dec-2013 15:18:17 America/Chicago] PHP   6. PHPUnit_Util_Configuration->getTestSuite() /Users/dlambert/Development/doctrine2-security/vendor/phpunit/phpunit/PHPUnit/Util/Configuration.php:797
+[14-Dec-2013 15:18:17 America/Chicago] PHP   7. PHPUnit_Framework_TestSuite->addTestFiles() /Users/dlambert/Development/doctrine2-security/vendor/phpunit/phpunit/PHPUnit/Util/Configuration.php:873
+[14-Dec-2013 15:18:17 America/Chicago] PHP   8. PHPUnit_Framework_TestSuite->addTestFile() /Users/dlambert/Development/doctrine2-security/vendor/phpunit/phpunit/PHPUnit/Framework/TestSuite.php:416
+[14-Dec-2013 15:18:17 America/Chicago] PHP   9. PHPUnit_Util_Fileloader::checkAndLoad() /Users/dlambert/Development/doctrine2-security/vendor/phpunit/phpunit/PHPUnit/Framework/TestSuite.php:355
+[14-Dec-2013 15:18:17 America/Chicago] PHP  10. PHPUnit_Util_Fileloader::load() /Users/dlambert/Development/doctrine2-security/vendor/phpunit/phpunit/PHPUnit/Util/Fileloader.php:76
+[14-Dec-2013 15:18:17 America/Chicago] PHP  11. include_once() /Users/dlambert/Development/doctrine2-security/vendor/phpunit/phpunit/PHPUnit/Util/Fileloader.php:92
+[14-Dec-2013 15:23:10 America/Chicago] PHP Fatal error:  Call to a member function add() on a non-object in /Users/dlambert/Development/doctrine2-security/tests/bootstrap.php on line 14
+[14-Dec-2013 15:23:10 America/Chicago] PHP Stack trace:
+[14-Dec-2013 15:23:10 America/Chicago] PHP   1. {main}() /Users/dlambert/Development/doctrine2-security/vendor/phpunit/phpunit/composer/bin/phpunit:0
+[14-Dec-2013 15:23:10 America/Chicago] PHP   2. PHPUnit_TextUI_Command::main() /Users/dlambert/Development/doctrine2-security/vendor/phpunit/phpunit/composer/bin/phpunit:63
+[14-Dec-2013 15:23:10 America/Chicago] PHP   3. PHPUnit_TextUI_Command->run() /Users/dlambert/Development/doctrine2-security/vendor/phpunit/phpunit/PHPUnit/TextUI/Command.php:129
+[14-Dec-2013 15:23:10 America/Chicago] PHP   4. PHPUnit_TextUI_Command->handleArguments() /Users/dlambert/Development/doctrine2-security/vendor/phpunit/phpunit/PHPUnit/TextUI/Command.php:138
+[14-Dec-2013 15:23:10 America/Chicago] PHP   5. PHPUnit_TextUI_Command->handleBootstrap() /Users/dlambert/Development/doctrine2-security/vendor/phpunit/phpunit/PHPUnit/TextUI/Command.php:606
+[14-Dec-2013 15:23:10 America/Chicago] PHP   6. PHPUnit_Util_Fileloader::checkAndLoad() /Users/dlambert/Development/doctrine2-security/vendor/phpunit/phpunit/PHPUnit/TextUI/Command.php:778
+[14-Dec-2013 15:23:10 America/Chicago] PHP   7. PHPUnit_Util_Fileloader::load() /Users/dlambert/Development/doctrine2-security/vendor/phpunit/phpunit/PHPUnit/Util/Fileloader.php:76
+[14-Dec-2013 15:23:10 America/Chicago] PHP   8. include_once() /Users/dlambert/Development/doctrine2-security/vendor/phpunit/phpunit/PHPUnit/Util/Fileloader.php:92

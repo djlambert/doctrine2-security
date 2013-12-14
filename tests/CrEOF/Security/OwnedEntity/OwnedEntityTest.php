@@ -3,7 +3,7 @@
 namespace CrEOF\Security\OwnedEntity;
 
 use CrEOF\Security\AbstractTestCase;
-use CrEOF\Security\OwnedEntity\EventSubscriber;
+use CrEOF\Security\OwnedEntity\EventSubscriber as OwnedEntityEventSubscriber;
 use Fixture\Owner;
 use OwnedEntity\Fixture\Article;
 use Doctrine\Common\EventManager;
@@ -18,7 +18,7 @@ class OwnedEntityTest extends AbstractTestCase
     const FEATURE       = 'OwnedEntity\\Fixture\\Feature';
     const PICTURE       = 'OwnedEntity\\Fixture\\Picture';
 
-    private $eventSubscriber;
+    private $ownedEntityEventSubscriber;
 
     /**
      * Setup
@@ -27,11 +27,12 @@ class OwnedEntityTest extends AbstractTestCase
     {
         parent::setUp();
 
-        $evm                   = new EventManager;
-        $this->eventSubscriber = new EventSubscriber();
+        $eventManager                     = new EventManager;
+        $this->ownedEntityEventSubscriber = new OwnedEntityEventSubscriber();
 
-        $evm->addEventSubscriber($this->eventSubscriber);
-        $this->getMockSqliteEntityManager($evm);
+        $eventManager->addEventSubscriber($this->ownedEntityEventSubscriber);
+
+        $this->getMockSqliteEntityManager($eventManager);
     }
 
     /**
@@ -52,16 +53,16 @@ class OwnedEntityTest extends AbstractTestCase
      */
     public function articleTest()
     {
-        $repo = $this->entityManager->getRepository(self::ARTICLE);
-
-        $owner = new Owner();
-        $this->entityManager->persist($owner);
-
-        $article = new Article;
-        $article->setTitle('test');
-        $this->entityManager->persist($article);
-        $this->entityManager->flush();
-
-        $this->entityManager->clear();
+//        $repo = $this->entityManager->getRepository(self::ARTICLE);
+//
+//        $owner = new Owner();
+//        $this->entityManager->persist($owner);
+//
+//        $article = new Article;
+//        $article->setTitle('test');
+//        $this->entityManager->persist($article);
+//        $this->entityManager->flush();
+//
+//        $this->entityManager->clear();
     }
 }

@@ -68,53 +68,14 @@ abstract class AbstractTestCase extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @param EntityManager $entityManager
-     *
-     * @return array
-     */
-    protected function getEntityMetadata(EntityManager $entityManager)
-    {
-        $getClassMetadata = function ($class) use ($entityManager) {
-            return $entityManager->getClassMetadata($class);
-        };
-
-        return array_map($getClassMetadata, (array) $this->getUsedEntityFixtures());
-    }
-
-    /**
-     * @param EntityManager $entityManager
-     */
-    protected function createEntitySchema(EntityManager $entityManager)
-    {
-        $schemaTool = new SchemaTool($entityManager);
-
-        $schemaTool->dropSchema([]);
-        $schemaTool->createSchema($this->getEntityMetadata($entityManager));
-    }
-
-    /**
-     * Creates default mapping driver
-     *
-     * @return AnnotationDriver
-     */
-    protected function getMetadataDriverImplementation()
-    {
-        if (null === static::$annotationReader) {
-            static::$annotationReader = new CachedReader(new AnnotationReader(), new ArrayCache());
-        }
-
-        return new AnnotationDriver(static::$annotationReader);
-    }
-
-    /**
      * EntityManager mock object together with annotation mapping driver and pdo_sqlite database in memory
      *
-     * @param Configuration $config
      * @param EventManager  $eventManager
+     * @param Configuration $config
      *
      * @return EntityManager
      */
-    protected function getMockSqliteEntityManager(Configuration $config = null, EventManager $eventManager = null)
+    protected function getMockSqliteEntityManager(EventManager $eventManager = null, Configuration $config = null)
     {
         $config = null === $config ? $this->getMockAnnotatedConfig() : $config;
         $conn   = [
@@ -148,10 +109,8 @@ abstract class AbstractTestCase extends \PHPUnit_Framework_TestCase
     protected function getMockEntityManager(array $conn, Configuration $config = null, EventManager $eventManager = null)
     {
         $entityManager = EntityManager::create($conn, $config, $eventManager ?: $this->getEventManager());
-        $schemaTool    = new SchemaTool($entityManager);
 
-        $schemaTool->dropSchema([]);
-        $schemaTool->createSchema($this->getEntityMetadata($entityManager));
+        $this->createEntitySchema($entityManager);
 
         return $this->entityManager = $entityManager;
     }
@@ -178,6 +137,47 @@ abstract class AbstractTestCase extends \PHPUnit_Framework_TestCase
             ->will($this->returnValue($eventManager ?: $this->getEventManager()));
 
         return $this->entityManager = EntityManager::create($conn, $this->getMockAnnotatedConfig());
+    }
+
+    /**
+     * @param EntityManager $entityManager
+     * @param array         $classes
+     *
+     * @return array
+     */
+    protected function getEntityMetadata(EntityManager $entityManager, array $classes = [])
+    {
+        $getClassMetadata = function ($class) use ($entityManager) {
+            return $entityManager->getClassMetadata($class);
+        };
+
+        return array_map($getClassMetadata, (array) $classes ?: $this->getUsedEntityFixtures());
+    }
+
+    /**
+     * @param EntityManager $entityManager
+     * @param array         $classes
+     */
+    protected function createEntitySchema(EntityManager $entityManager, array $classes = [])
+    {
+        $schemaTool = new SchemaTool($entityManager);
+
+        $schemaTool->dropSchema([]);
+        $schemaTool->createSchema($this->getEntityMetadata($entityManager, $classes));
+    }
+
+    /**
+     * Creates default mapping driver
+     *
+     * @return AnnotationDriver
+     */
+    protected function getMetadataDriverImplementation()
+    {
+        if (null === static::$annotationReader) {
+            static::$annotationReader = new CachedReader(new AnnotationReader(), new ArrayCache());
+        }
+
+        return new AnnotationDriver(static::$annotationReader);
     }
 
     /**
@@ -214,7 +214,7 @@ abstract class AbstractTestCase extends \PHPUnit_Framework_TestCase
             $output = $this->queryAnalyzer->getOutput($dumpOnlySql);
 
             if ($writeToLog) {
-                $fileName = __DIR__ . '/../../temp/query_debug_' . time() . '.log';
+                $fileName = $this->tempDir . '/query_debug_' . time() . '.log';
 
                 if (($file = fopen($fileName, 'w+')) !== false) {
                     fwrite($file, $output);
@@ -253,7 +253,7 @@ abstract class AbstractTestCase extends \PHPUnit_Framework_TestCase
         $config
             ->expects($this->once())
             ->method('getProxyDir')
-            ->will($this->returnValue(__DIR__.'/../../temp'));
+            ->will($this->returnValue($this->tempDir));
 
         $config
             ->expects($this->once())

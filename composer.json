@@ -19,7 +19,7 @@
         "doctrine/orm": ">=2.4"
     },
     "require-dev": {
-        "phpunit/phpunit": "3.8.*"
+        "phpunit/phpunit": "3.7.*"
     },
     "autoload": {
         "psr-0": { "CrEOF\\Security": "lib/" }
