@@ -98,6 +98,7 @@ class ACE
     const ACE_WHO_EVERYONE      = 'EVERYONE';
     const ACE_WHO_INTERACTIVE   = 'INTERACTIVE';
     const ACE_WHO_NETWORK       = 'NETWORK';
+    const ACE_WHO_DIALUP        = 'DIALUP';
     const ACE_WHO_BATCH         = 'BATCH';
     const ACE_WHO_ANONYMOUS     = 'ANONYMOUS';
     const ACE_WHO_AUTHENTICATED = 'AUTHENTICATED';
@@ -210,7 +211,6 @@ class ACE
     {
         if ($this->isSpecialSid($sid)) {
             $isGroup = false;
-            $sid     = strtoupper($sid) . '@';
         }
 
         if ($isGroup) {
@@ -247,21 +247,29 @@ class ACE
     /**
      * @return bool
      */
-    public function isGroup()
+    public function isGroupSid()
     {
-        return (bool) $this->flagMask & self::ACE_FLAG_IDENTIFIER_GROUP;
+        return self::ACE_FLAG_IDENTIFIER_GROUP === ($this->flagMask & self::ACE_FLAG_IDENTIFIER_GROUP);
     }
 
     /**
      * Check if sid is a special identifier
      *
-     * @param string $sid
+     * @param string &$sid optional
      *
      * @return bool
      */
-    private function isSpecialSid($sid)
+    public function isSpecialSid(&$sid = null)
     {
-        if (is_string($sid) && defined(sprintf('static::ACE_WHO_%s', strtoupper($sid)))) {
+        if (null === $sid) {
+            return $this->isSpecialSid($this->sid);
+        }
+
+        $localSid = strtoupper(preg_replace('/^([^@]+)@$/', '$1', $sid));
+
+        if (is_string($sid) && defined('static::ACE_WHO_' . $localSid)) {
+            $sid = $localSid . '@';
+
             return true;
         }
 

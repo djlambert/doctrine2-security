@@ -82,4 +82,79 @@ class ACETest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals(ACE::ACE_TYPE_ACCESS_ALLOWED, $ace->getType());
     }
+
+    /**
+     * @test
+     */
+    public function aceGroupSidTest()
+    {
+        $ace = new ACE();
+
+        $ace->setSid('security_group', true);
+
+        $this->assertEquals(true, $ace->isGroupSid());
+    }
+
+    /**
+     * @test
+     */
+    public function aceGroupSidFlipTest()
+    {
+        $ace = new ACE();
+
+        $ace->setSid('security_group', true);
+        $ace->setSid('user');
+
+        $this->assertEquals(false, $ace->isGroupSid());
+    }
+
+    /**
+     * @test
+     */
+    public function aceGroupSidFlipFlipTest()
+    {
+        $ace = new ACE();
+
+        $ace->setSid('security_group', true);
+        $ace->setSid('security_group2', true);
+
+        $this->assertEquals(true, $ace->isGroupSid());
+    }
+
+    /**
+     * @param string $sid
+     * @param bool   $isSpecialSid
+     *
+     * @test
+     * @dataProvider specialSidData
+     */
+    public function aceSpecialSidTest($sid, $isSpecialSid)
+    {
+        $ace = new ACE();
+
+        $ace->setSid($sid);
+
+        $this->assertEquals($isSpecialSid, $ace->isSpecialSid());
+    }
+
+    /**
+     * @return string[]
+     */
+    public function specialSidData()
+    {
+        return [
+          ['Owner', true],
+          ['GROUP@', true],
+          ['everyone', true],
+          ['interactive', true],
+          ['network', true],
+          ['dialup', true],
+          ['batch', true],
+          ['anonymous', true],
+          ['authenticated', true],
+          ['service', true],
+          ['username', false]
+        ];
+    }
+
 }
