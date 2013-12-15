@@ -11,7 +11,7 @@ $loader->add('CrEOF\Security', __DIR__);
 // Add fixture namespaces
 $loader->add('Fixture', __DIR__ . '/CrEOF/Security');
 $loader->add('OwnedEntity\Fixture', __DIR__ . '/CrEOF/Security');
-$loader->add('Mapping\Fixture', __DIR__ . '/CrEOF/Security');
+$loader->add('SecuredEntity\Fixture', __DIR__ . '/CrEOF/Security');
 
 // Register loader with annotation registry
 AnnotationRegistry::registerLoader([$loader, 'loadClass']);

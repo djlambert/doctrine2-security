@@ -11,11 +11,14 @@
          bootstrap="./bootstrap.php"
 >
     <testsuites>
+        <testsuite name="Mapping">
+            <directory suffix="Test.php">./CrEOF/Security/Mapping/</directory>
+        </testsuite>
         <testsuite name="OwnedEntity Extension">
             <directory suffix="Test.php">./CrEOF/Security/OwnedEntity/</directory>
         </testsuite>
-        <testsuite name="Mapping Extension">
-            <directory suffix="Test.php">./CrEOF/Security/Mapping/</directory>
+        <testsuite name="SecuredEntity Extension">
+            <directory suffix="Test.php">./CrEOF/Security/SecuredEntity/</directory>
         </testsuite>
     </testsuites>
 
