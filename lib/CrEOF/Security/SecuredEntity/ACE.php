@@ -23,8 +23,10 @@
 
 namespace CrEOF\Security\SecuredEntity;
 
+use CrEOF\Security\Exception\InvalidArgumentException;
+
 /**
- * Access control entry class
+ * Access control entry (ACE) class
  *
  * @author  Derek J. Lambert <dlambert@dereklambert.com>
  * @license http://dlambert.mit-license.org MIT
@@ -53,8 +55,8 @@ class ACE
      * ACE masks
      */
     const ACE_MASK_VIEW             = 0b00000000000000000000000000000001; //         1,        0x1, 1 << 0
-    const ACE_MASK_ADD              = 0b00000000000000000000000000000010; //         2,        0x2, 1 << 1
-    const ACE_MASK_CHANGE           = 0b00000000000000000000000000000100; //         4,        0x4, 1 << 2
+    const ACE_MASK_CREATE           = 0b00000000000000000000000000000010; //         2,        0x2, 1 << 1
+    const ACE_MASK_MODIFY           = 0b00000000000000000000000000000100; //         4,        0x4, 1 << 2
     const ACE_MASK_DELETE           = 0b00000000000000000000000000001000; //         8,        0x8, 1 << 3
     const ACE_MASK_UNDELETE         = 0b00000000000000000000000000010000; //        16,       0x10, 1 << 4
     const ACE_MASK_SEARCH           = 0b00000000000000000000000000100000; //        32,       0x20, 1 << 5
@@ -91,38 +93,24 @@ class ACE
     const ACE_MASK_FULL_CONTROL     = 0b00011111111111111111111111111111; // 536870911, 0x1FFFFFFF, 1 << 0 | 1 << 1 | ... | 1 << 28
 
     /**
-     * ACE special identifiers
+     * @var SID
      */
-    const ACE_WHO_OWNER         = 'OWNER';
-    const ACE_WHO_GROUP         = 'GROUP';
-    const ACE_WHO_EVERYONE      = 'EVERYONE';
-    const ACE_WHO_INTERACTIVE   = 'INTERACTIVE';
-    const ACE_WHO_NETWORK       = 'NETWORK';
-    const ACE_WHO_DIALUP        = 'DIALUP';
-    const ACE_WHO_BATCH         = 'BATCH';
-    const ACE_WHO_ANONYMOUS     = 'ANONYMOUS';
-    const ACE_WHO_AUTHENTICATED = 'AUTHENTICATED';
-    const ACE_WHO_SERVICE       = 'SERVICE';
-
-    /**
-     * @var mixed
-     */
-    protected $sid;
+    protected $sid = null;
 
     /**
      * @var int
      */
-    protected $typeMask;
+    protected $typeMask = 0;
 
     /**
      * @var int
      */
-    protected $accessMask;
+    protected $accessMask = 0;
 
     /**
      * @var int
      */
-    protected $flagMask;
+    protected $flagMask = 0;
 
 
     /**
@@ -139,7 +127,7 @@ class ACE
         }
 
         if ($typeMask !== self::ACE_TYPE_ACCESS_ALLOWED && $typeMask !== self::ACE_TYPE_ACCESS_DENIED && $typeMask !== self::ACE_TYPE_SYSTEM_AUDIT && $typeMask !== self::ACE_TYPE_SYSTEM_ALARM) {
-            throw new \InvalidArgumentException(sprintf('Unsupported ACE type %04o', $typeMask));
+            throw InvalidArgumentException::unsupportedAceType($typeMask);
         }
 
         $this->typeMask = $typeMask;
@@ -150,9 +138,7 @@ class ACE
      *
      * @param mixed $permission
      *
-     * @return ACL
-     *
-     * @throws \InvalidArgumentException
+     * @return ACE
      */
     public function addAccess($permission)
     {
@@ -166,8 +152,6 @@ class ACE
      *
      * @param mixed $permission
      *
-     * @throws \InvalidArgumentException
-
      * @return ACE
      */
     public function removeAccess($permission)
@@ -209,17 +193,11 @@ class ACE
      */
     public function setSid($sid, $isGroup = false)
     {
-        if ($this->isSpecialSid($sid)) {
-            $isGroup = false;
-        }
-
-        if ($isGroup) {
-            $this->flagMask |= self::ACE_FLAG_IDENTIFIER_GROUP;
+        if ($sid instanceof SID) {
+            $this->sid = $sid;
         } else {
-            $this->flagMask &= ~self::ACE_FLAG_IDENTIFIER_GROUP;
+            $this->sid = new SID($sid, $isGroup);
         }
-
-        $this->sid = $sid;
 
         return $this;
     }
@@ -227,7 +205,7 @@ class ACE
     /**
      * Get ACE sid
      *
-     * @return mixed
+     * @return SID
      */
     public function getSid()
     {
@@ -245,35 +223,15 @@ class ACE
     }
 
     /**
-     * @return bool
-     */
-    public function isGroupSid()
-    {
-        return self::ACE_FLAG_IDENTIFIER_GROUP === ($this->flagMask & self::ACE_FLAG_IDENTIFIER_GROUP);
-    }
-
-    /**
-     * Check if sid is a special identifier
+     * Does ACE type match passed type mask?
      *
-     * @param string &$sid optional
+     * @param int $typeMask
      *
      * @return bool
      */
-    public function isSpecialSid(&$sid = null)
+    public function isType($typeMask)
     {
-        if (null === $sid) {
-            return $this->isSpecialSid($this->sid);
-        }
-
-        $localSid = strtoupper(preg_replace('/^([^@]+)@$/', '$1', $sid));
-
-        if (is_string($sid) && defined('static::ACE_WHO_' . $localSid)) {
-            $sid = $localSid . '@';
-
-            return true;
-        }
-
-        return false;
+        return $typeMask === ($this->typeMask & $typeMask);
     }
 
     /**
@@ -287,6 +245,12 @@ class ACE
      */
     private function getPermissionMask($permission)
     {
+        if (is_array($permission)) {
+            $permission = array_reduce($permission, function ($combined, $perm) {
+                return $combined |= $this->getPermissionMask($perm);
+            }, 0);
+        }
+
         if (is_string($permission)) {
             if (!defined($name = sprintf('static::ACE_MASK_%s', strtoupper($permission)))) {
                 throw new \InvalidArgumentException(sprintf('The permission "%s" is not supported', $permission));

@@ -24,6 +24,7 @@
 namespace CrEOF\Security\SecuredEntity;
 
 use CrEOF\Security\SecuredEntity\ACE;
+use CrEOF\Security\SecuredEntity\SID;
 
 /**
  * test
@@ -34,43 +35,16 @@ use CrEOF\Security\SecuredEntity\ACE;
 class ACETest extends \PHPUnit_Framework_TestCase
 {
     /**
+     * @param int $typeMask
+     *
      * @test
+     * @dataProvider aceTypeMaskData
      */
-    public function aceTypeDeniedTest()
+    public function aceTypeTest($typeMask)
     {
-        $ace = new ACE(ACE::ACE_TYPE_ACCESS_DENIED);
+        $ace = new ACE($typeMask);
 
-        $this->assertEquals(ACE::ACE_TYPE_ACCESS_DENIED, $ace->getType());
-    }
-
-    /**
-     * @test
-     */
-    public function aceTypeAuditTest()
-    {
-        $ace = new ACE(ACE::ACE_TYPE_SYSTEM_AUDIT);
-
-        $this->assertEquals(ACE::ACE_TYPE_SYSTEM_AUDIT, $ace->getType());
-    }
-
-    /**
-     * @test
-     */
-    public function aceTypeAllowTest()
-    {
-        $ace = new ACE(ACE::ACE_TYPE_ACCESS_ALLOWED);
-
-        $this->assertEquals(ACE::ACE_TYPE_ACCESS_ALLOWED, $ace->getType());
-    }
-
-    /**
-     * @test
-     */
-    public function aceTypeAlarmTest()
-    {
-        $ace = new ACE(ACE::ACE_TYPE_SYSTEM_ALARM);
-
-        $this->assertEquals(ACE::ACE_TYPE_SYSTEM_ALARM, $ace->getType());
+        $this->assertEquals($typeMask, $ace->getType());
     }
 
     /**
@@ -85,6 +59,16 @@ class ACETest extends \PHPUnit_Framework_TestCase
 
     /**
      * @test
+     * @expectedException        \CrEOF\Security\Exception\InvalidArgumentException
+     * @expectedExceptionMessage Unsupported ACE type 0x00000012
+     */
+    public function aceBadTypeTest()
+    {
+        $ace = new ACE(10);
+    }
+
+    /**
+     * @test
      */
     public function aceGroupSidTest()
     {
@@ -92,69 +76,133 @@ class ACETest extends \PHPUnit_Framework_TestCase
 
         $ace->setSid('security_group', true);
 
-        $this->assertEquals(true, $ace->isGroupSid());
+        $this->assertEquals(true, $ace->getSid()->isGroup());
+        $this->assertEquals(false, $ace->getSid()->isSpecial());
     }
 
     /**
      * @test
      */
-    public function aceGroupSidFlipTest()
+    public function aceRegularSidTest()
     {
         $ace = new ACE();
 
-        $ace->setSid('security_group', true);
-        $ace->setSid('user');
+        $ace->setSid('JoeUser');
 
-        $this->assertEquals(false, $ace->isGroupSid());
+        $this->assertEquals(false, $ace->getSid()->isGroup());
+        $this->assertEquals(false, $ace->getSid()->isSpecial());
     }
 
     /**
      * @test
      */
-    public function aceGroupSidFlipFlipTest()
+    public function aceSpecialSidTest()
     {
         $ace = new ACE();
 
-        $ace->setSid('security_group', true);
-        $ace->setSid('security_group2', true);
+        $ace->setSid('group');
 
-        $this->assertEquals(true, $ace->isGroupSid());
+        $this->assertEquals(false, $ace->getSid()->isGroup());
+        $this->assertEquals(true, $ace->getSid()->isSpecial());
+        $this->assertEquals('GROUP@', $ace->getSid()->get());
     }
 
     /**
-     * @param string $sid
-     * @param bool   $isSpecialSid
+     * @param mixed $add
+     * @param mixed $remove
+     * @param int   $expected
      *
      * @test
-     * @dataProvider specialSidData
+     * @dataProvider aceAccessMaskData
      */
-    public function aceSpecialSidTest($sid, $isSpecialSid)
+    public function acePermissionTest($add, $remove, $expected)
     {
         $ace = new ACE();
 
-        $ace->setSid($sid);
+        foreach ($add as $perms) {
+            $ace->addAccess($perms);
+        }
 
-        $this->assertEquals($isSpecialSid, $ace->isSpecialSid());
+        foreach ($remove as $perms) {
+            $ace->removeAccess($perms);
+        }
+
+        $this->assertEquals($expected, $ace->getAccess());
     }
 
     /**
-     * @return string[]
+     * @return array[]
      */
-    public function specialSidData()
+    public function aceTypeMaskData()
     {
         return [
-          ['Owner', true],
-          ['GROUP@', true],
-          ['everyone', true],
-          ['interactive', true],
-          ['network', true],
-          ['dialup', true],
-          ['batch', true],
-          ['anonymous', true],
-          ['authenticated', true],
-          ['service', true],
-          ['username', false]
+            [ACE::ACE_TYPE_ACCESS_ALLOWED],
+            [ACE::ACE_TYPE_ACCESS_DENIED],
+            [ACE::ACE_TYPE_SYSTEM_AUDIT],
+            [ACE::ACE_TYPE_SYSTEM_ALARM]
         ];
     }
 
+    /**
+     * @return array[]
+     */
+    public function aceAccessMaskData()
+    {
+        return [
+            // Add string values
+            [
+                'add'      => ['view', 'create'],
+                'remove'   => [],
+                'expected' => ACE::ACE_MASK_VIEW + ACE::ACE_MASK_CREATE
+            ],
+            // Add int values
+            [
+                'add'      => [ACE::ACE_MASK_VIEW, ACE::ACE_MASK_CREATE],
+                'remove'   => [],
+                'expected' => ACE::ACE_MASK_VIEW + ACE::ACE_MASK_CREATE
+            ],
+            // Add array of string values
+            [
+                'add'      => [['view', 'create']],
+                'remove'   => [],
+                'expected' => ACE::ACE_MASK_VIEW + ACE::ACE_MASK_CREATE
+            ],
+            // Add array of int values
+            [
+                'add'      => [[ACE::ACE_MASK_VIEW, ACE::ACE_MASK_CREATE]],
+                'remove'   => [],
+                'expected' => ACE::ACE_MASK_VIEW + ACE::ACE_MASK_CREATE
+            ],
+            // Add and remove string values
+            [
+                'add'      => ['view', 'create', 'modify', 'delete'],
+                'remove'   => ['modify', 'delete'],
+                'expected' => ACE::ACE_MASK_VIEW + ACE::ACE_MASK_CREATE
+            ],
+            // Add and remove array of string values
+            [
+                'add'      => [['view', 'create', 'modify', 'delete']],
+                'remove'   => [['modify', 'delete']],
+                'expected' => ACE::ACE_MASK_VIEW + ACE::ACE_MASK_CREATE
+            ],
+            // Add and remove int values
+            [
+                'add'      => [ACE::ACE_MASK_VIEW, ACE::ACE_MASK_CREATE, ACE::ACE_MASK_MODIFY, ACE::ACE_MASK_DELETE],
+                'remove'   => [ACE::ACE_MASK_MODIFY, ACE::ACE_MASK_DELETE],
+                'expected' => ACE::ACE_MASK_VIEW + ACE::ACE_MASK_CREATE
+            ],
+            // Add and remove array of int values
+            [
+                'add'      => [[ACE::ACE_MASK_VIEW, ACE::ACE_MASK_CREATE, ACE::ACE_MASK_MODIFY, ACE::ACE_MASK_DELETE]],
+                'remove'   => [[ACE::ACE_MASK_MODIFY, ACE::ACE_MASK_DELETE]],
+                'expected' => ACE::ACE_MASK_VIEW + ACE::ACE_MASK_CREATE
+            ],
+            // Add and remove multiple arrays of string values
+            [
+                'add'      => [['view', 'create'], ['modify', 'delete']],
+                'remove'   => [['modify'], ['delete']],
+                'expected' => ACE::ACE_MASK_VIEW + ACE::ACE_MASK_CREATE
+            ],
+        ];
+    }
 }

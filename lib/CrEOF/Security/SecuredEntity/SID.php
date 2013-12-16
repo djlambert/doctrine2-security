@@ -54,12 +54,12 @@ class SID
     /**
      * @var mixed
      */
-    protected $sid;
+    protected $sid = null;
 
     /**
      * @var int
      */
-    protected $typeMask;
+    protected $typeMask = 0;
 
     /**
      * Constructor
@@ -136,7 +136,7 @@ class SID
     /**
      * Check if SID is a special identifier
      *
-     * @param string &$sid
+     * @param string &$sid if special SID value is normalized
      *
      * @return bool
      */

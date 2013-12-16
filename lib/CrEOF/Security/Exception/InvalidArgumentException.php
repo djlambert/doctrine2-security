@@ -33,5 +33,13 @@ use CrEOF\Security\ExceptionInterface;
  */
 class InvalidArgumentException extends \InvalidArgumentException implements ExceptionInterface
 {
-
+    /**
+     * @param int $typeMask
+     *
+     * @return InvalidArgumentException
+     */
+    public static function unsupportedAceType($typeMask)
+    {
+        return new self(sprintf('Unsupported ACE type 0x%08o', $typeMask));
+    }
 }
