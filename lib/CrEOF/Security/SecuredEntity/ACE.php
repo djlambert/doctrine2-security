@@ -112,6 +112,52 @@ class ACE
      */
     protected $flagMask = 0;
 
+    /**
+     * Valid flags for access ACEs
+     *
+     * @var int[]
+     */
+    protected $accessFlags = [
+        self::ACE_FLAG_INHERIT,
+        self::ACE_FLAG_NO_PROPAGATE_INHERIT,
+        self::ACE_FLAG_INHERIT_ONLY
+    ];
+
+    /**
+     * Valid flags for audit ACEs
+     *
+     * @var int[]
+     */
+    protected $auditFlags = [
+        self::ACE_FLAG_SUCCESSFUL_ACCESS,
+        self::ACE_FLAG_FAILED_ACCESS
+    ];
+
+    /**
+     * Type mask name lookup
+     *
+     * @var string[]
+     */
+    protected $typeConstants = [
+        self::ACE_TYPE_ACCESS_ALLOWED => 'ACE_TYPE_ACCESS_ALLOWED',
+        self::ACE_TYPE_ACCESS_DENIED  => 'ACE_TYPE_ACCESS_DENIED',
+        self::ACE_TYPE_SYSTEM_AUDIT   => 'ACE_TYPE_SYSTEM_AUDIT',
+        self::ACE_TYPE_SYSTEM_ALARM   => 'ACE_TYPE_SYSTEM_ALARM',
+    ];
+
+    /**
+     * Flag mask name lookup
+     *
+     * @var string[]
+     */
+    protected $flagConstants = [
+        self::ACE_FLAG_INHERIT              => 'ACE_FLAG_INHERIT',
+        self::ACE_FLAG_NO_PROPAGATE_INHERIT => 'ACE_FLAG_NO_PROPAGATE_INHERIT',
+        self::ACE_FLAG_INHERIT_ONLY         => 'ACE_FLAG_INHERIT_ONLY',
+        self::ACE_FLAG_SUCCESSFUL_ACCESS    => 'ACE_FLAG_SUCCESSFUL_ACCESS',
+        self::ACE_FLAG_FAILED_ACCESS        => 'ACE_FLAG_FAILED_ACCESS',
+        self::ACE_FLAG_IDENTIFIER_GROUP     => 'ACE_FLAG_IDENTIFIER_GROUP'
+    ];
 
     /**
      * Constructor
@@ -123,7 +169,7 @@ class ACE
     public function __construct($typeMask = 0)
     {
         if (!is_int($typeMask)) {
-            throw new \InvalidArgumentException('Type mask must be an integer');
+            throw InvalidArgumentException::aceTypeMaskNotInteger();
         }
 
         if ($typeMask !== self::ACE_TYPE_ACCESS_ALLOWED && $typeMask !== self::ACE_TYPE_ACCESS_DENIED && $typeMask !== self::ACE_TYPE_SYSTEM_AUDIT && $typeMask !== self::ACE_TYPE_SYSTEM_ALARM) {
@@ -131,6 +177,20 @@ class ACE
         }
 
         $this->typeMask = $typeMask;
+    }
+
+    /**
+     * Set the accessMask
+     *
+     * @param mixed $permission
+     *
+     * @return ACE
+     */
+    public function setAccess($permission)
+    {
+        $this->accessMask = $this->getPermissionMask($permission);
+
+        return $this;
     }
 
     /**
@@ -184,6 +244,20 @@ class ACE
     }
 
     /**
+     * Adds a flag to the flagMask
+     *
+     * @param mixed $flag
+     *
+     * @return ACE
+     */
+    public function addFlag($flag)
+    {
+        $this->flagMask |= $this->getFlagMask($flag);
+
+        return $this;
+    }
+
+    /**
      * Set ACE sid
      *
      * @param mixed $sid
@@ -197,6 +271,12 @@ class ACE
             $this->sid = $sid;
         } else {
             $this->sid = new SID($sid, $isGroup);
+        }
+
+        $this->flagMask &= ~self::ACE_FLAG_IDENTIFIER_GROUP;
+
+        if ($this->sid->isGroup()) {
+            $this->flagMask |= self::ACE_FLAG_IDENTIFIER_GROUP;
         }
 
         return $this;
@@ -252,17 +332,76 @@ class ACE
         }
 
         if (is_string($permission)) {
-            if (!defined($name = sprintf('static::ACE_MASK_%s', strtoupper($permission)))) {
-                throw new \InvalidArgumentException(sprintf('The permission "%s" is not supported', $permission));
+            if ( ! defined($name = sprintf('static::ACE_MASK_%s', strtoupper($permission)))) {
+                throw InvalidArgumentException::unsupportedAcePermission($permission);
             }
 
             return constant($name);
         }
 
-        if (!is_int($permission)) {
-            throw new \InvalidArgumentException('Permission value must be an integer');
+        if ( ! is_int($permission)) {
+            throw InvalidArgumentException::acePermissionNotInteger();
         }
 
         return $permission;
+    }
+
+    /**
+     * Get mask from flag value
+     *
+     * @param mixed $flag
+     *
+     * @throws \InvalidArgumentException
+     *
+     * @return int
+     */
+    private function getFlagMask($flag)
+    {
+        if (is_array($flag)) {
+            $flag = array_reduce($flag, function ($combined, $perm) {
+                return $combined |= $this->getFlagMask($perm);
+            }, 0);
+        }
+
+        if (is_string($flag)) {
+            if (! defined($name = sprintf('static::ACE_FLAG_%s', strtoupper($flag)))) {
+                throw InvalidArgumentException::unsupportedAceFlag($flag);
+            }
+
+            $flag = constant($name);
+        }
+
+        if (! is_int($flag)) {
+            throw InvalidArgumentException::aceFlagNotInteger();
+        }
+
+        if ( ! $this->isFlagValid($flag)) {
+            //throw InvalidArgumentException::
+        }
+
+        return $flag;
+    }
+
+    /**
+     * @param int $flag
+     *
+     * @return bool
+     */
+    private function isFlagValid($flag)
+    {
+        switch ($this->getType()) {
+            case self::ACE_TYPE_ACCESS_ALLOWED:
+                // no break
+            case self::ACE_TYPE_ACCESS_DENIED:
+                return in_array($flag, $this->accessFlags);
+
+            case self::ACE_TYPE_SYSTEM_AUDIT:
+                // no break
+            case self::ACE_TYPE_SYSTEM_ALARM:
+                return in_array($flag, $this->auditFlags);
+
+            default:
+                return false;
+        }
     }
 }

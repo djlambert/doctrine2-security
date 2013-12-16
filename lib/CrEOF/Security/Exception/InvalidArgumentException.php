@@ -42,4 +42,58 @@ class InvalidArgumentException extends \InvalidArgumentException implements Exce
     {
         return new self(sprintf('Unsupported ACE type 0x%08o', $typeMask));
     }
+
+    /**
+     * @param string $permission
+     *
+     * @return InvalidArgumentException
+     */
+    public static function unsupportedAcePermission($permission)
+    {
+        return new self(sprintf('The ACE permission "%s" is not supported', $permission));
+    }
+
+    /**
+     * @param string $flag
+     *
+     * @return InvalidArgumentException
+     */
+    public static function unsupportedAceFlag($flag)
+    {
+        return new self(sprintf('The ACE flag "%s" is not supported', $flag));
+    }
+
+    /**
+     * @return InvalidArgumentException
+     */
+    public static function aceTypeMaskNotInteger()
+    {
+        return self::valueNotInteger('ACE type mask');
+    }
+
+    /**
+     * @return InvalidArgumentException
+     */
+    public static function acePermissionNotInteger()
+    {
+        return self::valueNotInteger('ACE permission');
+    }
+
+    /**
+     * @return InvalidArgumentException
+     */
+    public static function aceFlagNotInteger()
+    {
+        return self::valueNotInteger('ACE flag');
+    }
+
+    /**
+     * @param string $valueName
+     *
+     * @return InvalidArgumentException
+     */
+    protected static function valueNotInteger($valueName)
+    {
+        return new self(sprintf('% value must be an integer', $valueName));
+    }
 }
