@@ -38,29 +38,29 @@ class InvalidArgumentException extends \InvalidArgumentException implements Exce
      *
      * @return InvalidArgumentException
      */
-    public static function unsupportedAceType($typeMask)
+    public static function unsupportedAceTypeMask($typeMask)
     {
-        return new self(sprintf('Unsupported ACE type 0x%08o', $typeMask));
+        return self::unsupportedAceMask('type', sprintf('0x%08o', $typeMask));
     }
 
     /**
-     * @param string $permission
+     * @param string $accessMask
      *
      * @return InvalidArgumentException
      */
-    public static function unsupportedAcePermission($permission)
+    public static function unsupportedAceAccessMask($accessMask)
     {
-        return new self(sprintf('The ACE permission "%s" is not supported', $permission));
+        return self::unsupportedAceMask('access', $accessMask);
     }
 
     /**
-     * @param string $flag
+     * @param string $flagMask
      *
      * @return InvalidArgumentException
      */
-    public static function unsupportedAceFlag($flag)
+    public static function unsupportedAceFlagMask($flagMask)
     {
-        return new self(sprintf('The ACE flag "%s" is not supported', $flag));
+        return self::unsupportedAceMask('flag', $flagMask);
     }
 
     /**
@@ -68,32 +68,43 @@ class InvalidArgumentException extends \InvalidArgumentException implements Exce
      */
     public static function aceTypeMaskNotInteger()
     {
-        return self::valueNotInteger('ACE type mask');
+        return self::maskNotInteger('type');
     }
 
     /**
      * @return InvalidArgumentException
      */
-    public static function acePermissionNotInteger()
+    public static function aceAccessMaskNotInteger()
     {
-        return self::valueNotInteger('ACE permission');
+        return self::maskNotInteger('access');
     }
 
     /**
      * @return InvalidArgumentException
      */
-    public static function aceFlagNotInteger()
+    public static function aceFlagMaskNotInteger()
     {
-        return self::valueNotInteger('ACE flag');
+        return self::maskNotInteger('flag');
     }
 
     /**
-     * @param string $valueName
+     * @param string $maskName
+     * @param string $mask
      *
      * @return InvalidArgumentException
      */
-    protected static function valueNotInteger($valueName)
+    protected static function unsupportedAceMask($maskName, $mask)
     {
-        return new self(sprintf('% value must be an integer', $valueName));
+        return new self(sprintf('ACE %s mask "%s" is not supported', $maskName, $mask));
+    }
+
+    /**
+     * @param string $maskName
+     *
+     * @return InvalidArgumentException
+     */
+    protected static function maskNotInteger($maskName)
+    {
+        return new self(sprintf('ACE %s mask value must be an integer', $maskName));
     }
 }

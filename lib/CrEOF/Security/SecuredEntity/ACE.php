@@ -164,7 +164,7 @@ class ACE
      *
      * @param int $typeMask optional
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function __construct($typeMask = 0)
     {
@@ -173,7 +173,7 @@ class ACE
         }
 
         if ($typeMask !== self::ACE_TYPE_ACCESS_ALLOWED && $typeMask !== self::ACE_TYPE_ACCESS_DENIED && $typeMask !== self::ACE_TYPE_SYSTEM_AUDIT && $typeMask !== self::ACE_TYPE_SYSTEM_ALARM) {
-            throw InvalidArgumentException::unsupportedAceType($typeMask);
+            throw InvalidArgumentException::unsupportedAceTypeMask($typeMask);
         }
 
         $this->typeMask = $typeMask;
@@ -188,7 +188,7 @@ class ACE
      */
     public function setAccess($permission)
     {
-        $this->accessMask = $this->getPermissionMask($permission);
+        $this->accessMask = $this->getAccessMask($permission);
 
         return $this;
     }
@@ -202,7 +202,7 @@ class ACE
      */
     public function addAccess($permission)
     {
-        $this->accessMask |= $this->getPermissionMask($permission);
+        $this->accessMask |= $this->getAccessMask($permission);
 
         return $this;
     }
@@ -216,7 +216,7 @@ class ACE
      */
     public function removeAccess($permission)
     {
-        $this->accessMask &= ~$this->getPermissionMask($permission);
+        $this->accessMask &= ~$this->getAccessMask($permission);
 
         return $this;
     }
@@ -317,33 +317,32 @@ class ACE
     /**
      * Get mask from permission value
      *
-     * @param mixed $permission
-     *
-     * @throws \InvalidArgumentException
+     * @param mixed $access
      *
      * @return int
+     * @throws InvalidArgumentException
      */
-    private function getPermissionMask($permission)
+    private function getAccessMask($access)
     {
-        if (is_array($permission)) {
-            $permission = array_reduce($permission, function ($combined, $perm) {
-                return $combined |= $this->getPermissionMask($perm);
+        if (is_array($access)) {
+            $access = array_reduce($access, function ($combined, $perm) {
+                return $combined |= $this->getAccessMask($perm);
             }, 0);
         }
 
-        if (is_string($permission)) {
-            if ( ! defined($name = sprintf('static::ACE_MASK_%s', strtoupper($permission)))) {
-                throw InvalidArgumentException::unsupportedAcePermission($permission);
+        if (is_string($access)) {
+            if ( ! defined($name = sprintf('static::ACE_MASK_%s', strtoupper($access)))) {
+                throw InvalidArgumentException::unsupportedAceAccessMask($access);
             }
 
             return constant($name);
         }
 
-        if ( ! is_int($permission)) {
-            throw InvalidArgumentException::acePermissionNotInteger();
+        if ( ! is_int($access)) {
+            throw InvalidArgumentException::aceAccessMaskNotInteger();
         }
 
-        return $permission;
+        return $access;
     }
 
     /**
@@ -351,9 +350,8 @@ class ACE
      *
      * @param mixed $flag
      *
-     * @throws \InvalidArgumentException
-     *
      * @return int
+     * @throws InvalidArgumentException
      */
     private function getFlagMask($flag)
     {
@@ -365,14 +363,14 @@ class ACE
 
         if (is_string($flag)) {
             if (! defined($name = sprintf('static::ACE_FLAG_%s', strtoupper($flag)))) {
-                throw InvalidArgumentException::unsupportedAceFlag($flag);
+                throw InvalidArgumentException::unsupportedAceFlagMask($flag);
             }
 
             $flag = constant($name);
         }
 
         if (! is_int($flag)) {
-            throw InvalidArgumentException::aceFlagNotInteger();
+            throw InvalidArgumentException::aceFlagMaskNotInteger();
         }
 
         if ( ! $this->isFlagValid($flag)) {
@@ -380,6 +378,40 @@ class ACE
         }
 
         return $flag;
+    }
+
+    /**
+     * @param mixed  $value
+     * @param string $type
+     *
+     * @return mixed
+     * @throws InvalidArgumentException
+     */
+    private function getMaskValue($value, $type)
+    {
+        if (is_array($value)) {
+            $value = array_reduce($value, function ($combined, $val) use ($type) {
+                return $combined |= $this->getValueMask($val, $type);
+            }, 0);
+        }
+
+        if (is_string($value)) {
+            if ( ! defined($name = sprintf('static::ACE_%_%s', strtoupper($type), strtoupper($value)))) {
+                $exception = 'unsupportedAce' . ucfirst($type) . 'Mask';
+
+                throw InvalidArgumentException::$exception($value);
+            }
+
+            return constant($name);
+        }
+
+        if ( ! is_int($value)) {
+            $exception = 'ace' . ucfirst($type) . 'MaskNotInteger';
+
+            throw InvalidArgumentException::$exception();
+        }
+
+        return $value;
     }
 
     /**
