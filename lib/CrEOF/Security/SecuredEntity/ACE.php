@@ -258,6 +258,30 @@ class ACE
     }
 
     /**
+     * Removes a permission from the flagMask
+     *
+     * @param mixed $flag
+     *
+     * @return ACE
+     */
+    public function removeFlag($flag)
+    {
+        $this->flagMask &= ~$this->getFlagMask($flag);
+
+        return $this;
+    }
+
+    /**
+     * Returns the flagMask value
+     *
+     * @return int
+     */
+    public function getFlag()
+    {
+        return $this->flagMask;
+    }
+
+    /**
      * Set ACE sid
      *
      * @param mixed $sid
@@ -324,7 +348,25 @@ class ACE
      */
     private function getAccessMask($access)
     {
-        return $this->getMaskValue('access', $access);
+        if (is_array($access)) {
+            $access = array_reduce($access, function ($combined, $val) {
+                return $combined |= $this->getAccessMask($val);
+            }, 0);
+        }
+
+        if (is_string($access)) {
+            if ( ! defined($name = $this->getConstName($type, $access))) {
+                throw InvalidArgumentException::unsupportedAceAccessMask($access);
+            }
+
+            return constant($name);
+        }
+
+        if ( ! is_int($access)) {
+            throw InvalidArgumentException::aceAccessMaskNotInteger();
+        }
+
+        return $access;
     }
 
     /**
@@ -340,7 +382,7 @@ class ACE
         $flag = $this->getMaskValue('flag', $flag);
 
         if ( ! $this->isFlagValid($flag)) {
-            //throw InvalidArgumentException::
+            throw InvalidArgumentException::unsupportedFlagMaskForAce($this->flagConstants[$flag], $this->typeConstants[$this->getType()]);
         }
 
         return $flag;
@@ -390,6 +432,16 @@ class ACE
      */
     private function getConstName($type, $name)
     {
+        switch ($type) {
+            case 'access':
+                $type = 'mask';
+                break;
+            case 'flag':
+                $type = $name;
+                $name = 'access';
+                break;
+        }
+
         return sprintf('static::ACE_%s_%s', strtoupper($type === 'access' ? 'mask' : $type), strtoupper($name));
     }
 
@@ -407,12 +459,10 @@ class ACE
                 // no break
             case self::ACE_TYPE_ACCESS_DENIED:
                 return in_array($flag, $this->accessFlags);
-
             case self::ACE_TYPE_SYSTEM_AUDIT:
                 // no break
             case self::ACE_TYPE_SYSTEM_ALARM:
                 return in_array($flag, $this->auditFlags);
-
             default:
                 return false;
         }

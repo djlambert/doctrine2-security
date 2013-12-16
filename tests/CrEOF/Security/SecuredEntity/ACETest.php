@@ -108,8 +108,8 @@ class ACETest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @param mixed $add
-     * @param mixed $remove
+     * @param array $add
+     * @param array $remove
      * @param int   $expected
      *
      * @test
@@ -128,6 +128,30 @@ class ACETest extends \PHPUnit_Framework_TestCase
         }
 
         $this->assertEquals($expected, $ace->getAccess());
+    }
+
+    /**
+     * @param int   $type
+     * @param array $add
+     * @param array $remove
+     * @param int   $expected
+     *
+     * @test
+     * @dataProvider aceFlagMaskData
+     */
+    public function aceFlagTest($type, $add, $remove, $expected)
+    {
+        $ace = new ACE($type);
+
+        foreach ($add as $flags) {
+            $ace->addFlag($flags);
+        }
+
+        foreach ($remove as $flags) {
+            $ace->removeFlag($flags);
+        }
+
+        $this->assertEquals($expected, $ace->getFlag());
     }
 
     /**
@@ -202,6 +226,159 @@ class ACETest extends \PHPUnit_Framework_TestCase
                 'add'      => [['view', 'create'], ['modify', 'delete']],
                 'remove'   => [['modify'], ['delete']],
                 'expected' => ACE::ACE_MASK_VIEW + ACE::ACE_MASK_CREATE
+            ],
+        ];
+    }
+
+    /**
+     * @return array[]
+     */
+    public function aceFlagMaskData()
+    {
+        return [
+            [
+                'type'     => ACE::ACE_TYPE_ACCESS_ALLOWED,
+                'add'      => ['inherit'],
+                'remove'   => [],
+                'expected' => ACE::ACE_FLAG_INHERIT
+            ],
+            [
+                'type'     => ACE::ACE_TYPE_ACCESS_ALLOWED,
+                'add'      => [ACE::ACE_FLAG_INHERIT],
+                'remove'   => [],
+                'expected' => ACE::ACE_FLAG_INHERIT
+            ],
+            [
+                'type'     => ACE::ACE_TYPE_ACCESS_DENIED,
+                'add'      => ['inherit'],
+                'remove'   => [],
+                'expected' => ACE::ACE_FLAG_INHERIT
+            ],
+            [
+                'type'     => ACE::ACE_TYPE_ACCESS_DENIED,
+                'add'      => [ACE::ACE_FLAG_INHERIT],
+                'remove'   => [],
+                'expected' => ACE::ACE_FLAG_INHERIT
+            ],
+            [
+                'type'     => ACE::ACE_TYPE_ACCESS_ALLOWED,
+                'add'      => ['inherit', 'no_propagate_inherit', 'inherit_only'],
+                'remove'   => [],
+                'expected' => ACE::ACE_FLAG_INHERIT + ACE::ACE_FLAG_NO_PROPAGATE_INHERIT + ACE::ACE_FLAG_INHERIT_ONLY
+            ],
+            [
+                'type'     => ACE::ACE_TYPE_ACCESS_ALLOWED,
+                'add'      => [ACE::ACE_FLAG_INHERIT, ACE::ACE_FLAG_NO_PROPAGATE_INHERIT,  ACE::ACE_FLAG_INHERIT_ONLY],
+                'remove'   => [],
+                'expected' => ACE::ACE_FLAG_INHERIT + ACE::ACE_FLAG_NO_PROPAGATE_INHERIT + ACE::ACE_FLAG_INHERIT_ONLY
+            ],
+            [
+                'type'     => ACE::ACE_TYPE_ACCESS_DENIED,
+                'add'      => ['inherit', 'no_propagate_inherit', 'inherit_only'],
+                'remove'   => [],
+                'expected' => ACE::ACE_FLAG_INHERIT + ACE::ACE_FLAG_NO_PROPAGATE_INHERIT + ACE::ACE_FLAG_INHERIT_ONLY
+            ],
+            [
+                'type'     => ACE::ACE_TYPE_ACCESS_DENIED,
+                'add'      => [ACE::ACE_FLAG_INHERIT, ACE::ACE_FLAG_NO_PROPAGATE_INHERIT,  ACE::ACE_FLAG_INHERIT_ONLY],
+                'remove'   => [],
+                'expected' => ACE::ACE_FLAG_INHERIT + ACE::ACE_FLAG_NO_PROPAGATE_INHERIT + ACE::ACE_FLAG_INHERIT_ONLY
+            ],
+            [
+                'type'     => ACE::ACE_TYPE_SYSTEM_AUDIT,
+                'add'      => [ACE::ACE_FLAG_SUCCESSFUL_ACCESS],
+                'remove'   => [],
+                'expected' => ACE::ACE_FLAG_SUCCESSFUL_ACCESS
+            ],
+            [
+                'type'     => ACE::ACE_TYPE_SYSTEM_AUDIT,
+                'add'      => ['success'],
+                'remove'   => [],
+                'expected' => ACE::ACE_FLAG_SUCCESSFUL_ACCESS
+            ],
+            [
+                'type'     => ACE::ACE_TYPE_SYSTEM_AUDIT,
+                'add'      => [ACE::ACE_FLAG_FAILED_ACCESS],
+                'remove'   => [],
+                'expected' => ACE::ACE_FLAG_FAILED_ACCESS
+            ],
+            [
+                'type'     => ACE::ACE_TYPE_SYSTEM_AUDIT,
+                'add'      => ['failed'],
+                'remove'   => [],
+                'expected' => ACE::ACE_FLAG_FAILED_ACCESS
+            ],
+            [
+                'type'     => ACE::ACE_TYPE_SYSTEM_AUDIT,
+                'add'      => [ACE::ACE_FLAG_SUCCESSFUL_ACCESS, ACE::ACE_FLAG_FAILED_ACCESS],
+                'remove'   => [],
+                'expected' => ACE::ACE_FLAG_SUCCESSFUL_ACCESS + ACE::ACE_FLAG_FAILED_ACCESS
+            ],
+            [
+                'type'     => ACE::ACE_TYPE_SYSTEM_AUDIT,
+                'add'      => ['success', 'failed'],
+                'remove'   => [],
+                'expected' => ACE::ACE_FLAG_SUCCESSFUL_ACCESS + ACE::ACE_FLAG_FAILED_ACCESS
+            ],
+            [
+                'type'     => ACE::ACE_TYPE_SYSTEM_AUDIT,
+                'add'      => [ACE::ACE_FLAG_SUCCESSFUL_ACCESS, ACE::ACE_FLAG_FAILED_ACCESS],
+                'remove'   => [ACE::ACE_FLAG_SUCCESSFUL_ACCESS],
+                'expected' => ACE::ACE_FLAG_FAILED_ACCESS
+            ],
+            [
+                'type'     => ACE::ACE_TYPE_SYSTEM_AUDIT,
+                'add'      => ['success', 'failed'],
+                'remove'   => ['failed'],
+                'expected' => ACE::ACE_FLAG_SUCCESSFUL_ACCESS
+            ],
+            [
+                'type'     => ACE::ACE_TYPE_SYSTEM_ALARM,
+                'add'      => [ACE::ACE_FLAG_SUCCESSFUL_ACCESS],
+                'remove'   => [],
+                'expected' => ACE::ACE_FLAG_SUCCESSFUL_ACCESS
+            ],
+            [
+                'type'     => ACE::ACE_TYPE_SYSTEM_ALARM,
+                'add'      => ['success'],
+                'remove'   => [],
+                'expected' => ACE::ACE_FLAG_SUCCESSFUL_ACCESS
+            ],
+            [
+                'type'     => ACE::ACE_TYPE_SYSTEM_ALARM,
+                'add'      => [ACE::ACE_FLAG_FAILED_ACCESS],
+                'remove'   => [],
+                'expected' => ACE::ACE_FLAG_FAILED_ACCESS
+            ],
+            [
+                'type'     => ACE::ACE_TYPE_SYSTEM_ALARM,
+                'add'      => ['failed'],
+                'remove'   => [],
+                'expected' => ACE::ACE_FLAG_FAILED_ACCESS
+            ],
+            [
+                'type'     => ACE::ACE_TYPE_SYSTEM_ALARM,
+                'add'      => [ACE::ACE_FLAG_SUCCESSFUL_ACCESS, ACE::ACE_FLAG_FAILED_ACCESS],
+                'remove'   => [],
+                'expected' => ACE::ACE_FLAG_SUCCESSFUL_ACCESS + ACE::ACE_FLAG_FAILED_ACCESS
+            ],
+            [
+                'type'     => ACE::ACE_TYPE_SYSTEM_ALARM,
+                'add'      => ['success', 'failed'],
+                'remove'   => [],
+                'expected' => ACE::ACE_FLAG_SUCCESSFUL_ACCESS + ACE::ACE_FLAG_FAILED_ACCESS
+            ],
+            [
+                'type'     => ACE::ACE_TYPE_SYSTEM_ALARM,
+                'add'      => [ACE::ACE_FLAG_SUCCESSFUL_ACCESS, ACE::ACE_FLAG_FAILED_ACCESS],
+                'remove'   => [ACE::ACE_FLAG_SUCCESSFUL_ACCESS],
+                'expected' => ACE::ACE_FLAG_FAILED_ACCESS
+            ],
+            [
+                'type'     => ACE::ACE_TYPE_SYSTEM_ALARM,
+                'add'      => ['success', 'failed'],
+                'remove'   => ['failed'],
+                'expected' => ACE::ACE_FLAG_SUCCESSFUL_ACCESS
             ],
         ];
     }

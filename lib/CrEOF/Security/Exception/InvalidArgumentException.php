@@ -88,6 +88,17 @@ class InvalidArgumentException extends \InvalidArgumentException implements Exce
     }
 
     /**
+     * @param string $flagMask
+     * @param string $aceType
+     *
+     * @return InvalidArgumentException
+     */
+    public static function unsupportedFlagMaskForAce($flagMask, $aceType)
+    {
+        return new self(sprintf('ACE flag "%s" is not supported on ACE type "%s"', $flagMask, $aceType));
+    }
+
+    /**
      * @param string $maskName
      * @param string $mask
      *
