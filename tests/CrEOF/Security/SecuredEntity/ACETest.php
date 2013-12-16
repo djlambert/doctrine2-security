@@ -60,7 +60,7 @@ class ACETest extends \PHPUnit_Framework_TestCase
     /**
      * @test
      * @expectedException        \CrEOF\Security\Exception\InvalidArgumentException
-     * @expectedExceptionMessage Unsupported ACE type 0x00000012
+     * @expectedExceptionMessage ACE type mask "0x00000012" is not supported
      */
     public function aceBadTypeTest()
     {

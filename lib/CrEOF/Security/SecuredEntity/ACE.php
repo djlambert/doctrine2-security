@@ -324,25 +324,7 @@ class ACE
      */
     private function getAccessMask($access)
     {
-        if (is_array($access)) {
-            $access = array_reduce($access, function ($combined, $perm) {
-                return $combined |= $this->getAccessMask($perm);
-            }, 0);
-        }
-
-        if (is_string($access)) {
-            if ( ! defined($name = sprintf('static::ACE_MASK_%s', strtoupper($access)))) {
-                throw InvalidArgumentException::unsupportedAceAccessMask($access);
-            }
-
-            return constant($name);
-        }
-
-        if ( ! is_int($access)) {
-            throw InvalidArgumentException::aceAccessMaskNotInteger();
-        }
-
-        return $access;
+        return $this->getMaskValue('access', $access);
     }
 
     /**
@@ -355,23 +337,7 @@ class ACE
      */
     private function getFlagMask($flag)
     {
-        if (is_array($flag)) {
-            $flag = array_reduce($flag, function ($combined, $perm) {
-                return $combined |= $this->getFlagMask($perm);
-            }, 0);
-        }
-
-        if (is_string($flag)) {
-            if (! defined($name = sprintf('static::ACE_FLAG_%s', strtoupper($flag)))) {
-                throw InvalidArgumentException::unsupportedAceFlagMask($flag);
-            }
-
-            $flag = constant($name);
-        }
-
-        if (! is_int($flag)) {
-            throw InvalidArgumentException::aceFlagMaskNotInteger();
-        }
+        $flag = $this->getMaskValue('flag', $flag);
 
         if ( ! $this->isFlagValid($flag)) {
             //throw InvalidArgumentException::
@@ -381,22 +347,22 @@ class ACE
     }
 
     /**
-     * @param mixed  $value
      * @param string $type
+     * @param mixed  $value
      *
      * @return mixed
      * @throws InvalidArgumentException
      */
-    private function getMaskValue($value, $type)
+    private function getMaskValue($type, $value)
     {
         if (is_array($value)) {
             $value = array_reduce($value, function ($combined, $val) use ($type) {
-                return $combined |= $this->getValueMask($val, $type);
+                return $combined |= $this->getMaskValue($type, $val);
             }, 0);
         }
 
         if (is_string($value)) {
-            if ( ! defined($name = sprintf('static::ACE_%_%s', strtoupper($type), strtoupper($value)))) {
+            if ( ! defined($name = sprintf('static::ACE_%s_%s', strtoupper($type === 'access' ? 'mask' : $type), strtoupper($value)))) {
                 $exception = 'unsupportedAce' . ucfirst($type) . 'Mask';
 
                 throw InvalidArgumentException::$exception($value);
