@@ -168,7 +168,7 @@ class ACE
      */
     public function __construct($typeMask = 0)
     {
-        if (!is_int($typeMask)) {
+        if ( ! is_int($typeMask)) {
             throw InvalidArgumentException::aceTypeMaskNotInteger();
         }
 
@@ -362,8 +362,8 @@ class ACE
         }
 
         if (is_string($value)) {
-            if ( ! defined($name = sprintf('static::ACE_%s_%s', strtoupper($type === 'access' ? 'mask' : $type), strtoupper($value)))) {
-                $exception = 'unsupportedAce' . ucfirst($type) . 'Mask';
+            if ( ! defined($name = $this->getConstName($type, $value))) {
+                $exception = sprintf('unsupportedAce%sMask', ucfirst($type));
 
                 throw InvalidArgumentException::$exception($value);
             }
@@ -372,7 +372,7 @@ class ACE
         }
 
         if ( ! is_int($value)) {
-            $exception = 'ace' . ucfirst($type) . 'MaskNotInteger';
+            $exception = sprintf('ace%sMaskNotInteger', ucfirst($type));
 
             throw InvalidArgumentException::$exception();
         }
@@ -381,6 +381,21 @@ class ACE
     }
 
     /**
+     * Build constant name from type and name
+     *
+     * @param string $type
+     * @param string $name
+     *
+     * @return string
+     */
+    private function getConstName($type, $name)
+    {
+        return sprintf('static::ACE_%s_%s', strtoupper($type === 'access' ? 'mask' : $type), strtoupper($name));
+    }
+
+    /**
+     * Check if flag is valid for ACE type
+     *
      * @param int $flag
      *
      * @return bool
