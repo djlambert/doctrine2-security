@@ -54,9 +54,14 @@ class TypeMask extends AbstractMask
         'ALARM' => ACE::ACE_TYPE_SYSTEM_ALARM
     ];
 
-    protected function isValid(&$mask)
+    /**
+     * @param int $mask
+     *
+     * @return bool
+     */
+    protected function isValid($mask)
     {
-
+        return in_array($mask, $this->lookupConstants, true);
     }
 
     /**

@@ -48,9 +48,11 @@ abstract class AbstractMask
      *
      * @param int $mask optional
      */
-    public function __construct($mask = 0)
+    public function __construct($mask = null)
     {
-        $this->mask = $mask;
+        if (null !== $mask) {
+            $this->mask = $this->getMask($mask);
+        }
     }
 
     /**
@@ -110,11 +112,11 @@ abstract class AbstractMask
     }
 
     /**
-     * @param mixed &$mask
+     * @param int $mask
      *
      * @return bool
      */
-    abstract protected function isValid(&$mask);
+    abstract protected function isValid($mask);
 
     /**
      * @param mixed $mask
@@ -151,11 +153,15 @@ abstract class AbstractMask
                 throw $this->unsupportedMask($mask);
             }
 
-            return $this->tokenConstants[$mask];
+            $mask = $this->tokenConstants[$mask];
         }
 
         if ( ! is_int($mask)) {
             throw $this->maskNotInteger($mask);
+        }
+
+        if ( ! $this->isValid($mask)) {
+            throw $this->unsupportedMask($mask);
         }
 
         return $mask;
