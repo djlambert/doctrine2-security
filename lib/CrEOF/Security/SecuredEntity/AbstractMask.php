@@ -31,30 +31,8 @@ use CrEOF\Security\Exception\InvalidArgumentException;
  * @author  Derek J. Lambert <dlambert@dereklambert.com>
  * @license http://dlambert.mit-license.org MIT
  */
-abstract class AbstractMask
+abstract class AbstractMask extends AbstractSimpleMask
 {
-    /**
-     * @var int
-     */
-    protected $mask = 0;
-
-    /**
-     * @var array
-     */
-    protected $tokenConstants = [];
-
-    /**
-     * Constructor
-     *
-     * @param int $mask optional
-     */
-    public function __construct($mask = null)
-    {
-        if (null !== $mask) {
-            $this->mask = $this->getMask($mask);
-        }
-    }
-
     /**
      * Adds a mask to the mask
      *
@@ -67,24 +45,6 @@ abstract class AbstractMask
         $this->mask |= $this->getMask($mask);
 
         return $this;
-    }
-
-    /**
-     * @param int $mask
-     *
-     * @return bool
-     */
-    public function contains($mask)
-    {
-        return $mask === ($this->mask & $mask);
-    }
-
-    /**
-     * @return int
-     */
-    public function get()
-    {
-        return $this->mask;
     }
 
     /**
@@ -102,6 +62,20 @@ abstract class AbstractMask
     }
 
     /**
+     * @param int $mask
+     *
+     * @return bool
+     */
+    public function contains($mask)
+    {
+        $mask = $this->getMask($mask);
+
+        return $mask === ($this->mask & $mask);
+    }
+
+    /**
+     * Reset mask to all zeros
+     *
      * @return AbstractMask
      */
     public function reset()
@@ -110,27 +84,6 @@ abstract class AbstractMask
 
         return $this;
     }
-
-    /**
-     * @param int $mask
-     *
-     * @return bool
-     */
-    abstract protected function isValid($mask);
-
-    /**
-     * @param mixed $mask
-     *
-     * @return InvalidArgumentException
-     */
-    abstract protected function unsupportedMask($mask);
-
-    /**
-     * @param mixed $mask
-     *
-     * @return InvalidArgumentException
-     */
-    abstract protected function maskNotInteger($mask);
 
     /**
      * @param mixed $mask
@@ -146,24 +99,6 @@ abstract class AbstractMask
             }, 0);
         }
 
-        if (is_string($mask)) {
-            $mask = strtoupper($mask);
-
-            if ( ! isset($this->tokenConstants[$mask])) {
-                throw $this->unsupportedMask($mask);
-            }
-
-            $mask = $this->tokenConstants[$mask];
-        }
-
-        if ( ! is_int($mask)) {
-            throw $this->maskNotInteger($mask);
-        }
-
-        if ( ! $this->isValid($mask)) {
-            throw $this->unsupportedMask($mask);
-        }
-
-        return $mask;
+        return parent::getMask($mask);
     }
 }

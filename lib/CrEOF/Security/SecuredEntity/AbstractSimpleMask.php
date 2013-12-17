@@ -26,66 +26,92 @@ namespace CrEOF\Security\SecuredEntity;
 use CrEOF\Security\Exception\InvalidArgumentException;
 
 /**
- * TypeMask class
+ * AbstractSimpleMask
+ *
+ * Simple read-only map class with validation
  *
  * @author  Derek J. Lambert <dlambert@dereklambert.com>
  * @license http://dlambert.mit-license.org MIT
  */
-class TypeMask extends AbstractSimpleMask
+abstract class AbstractSimpleMask
 {
     /**
-     * Type mask name lookup
-     *
-     * @var array
+     * @var int
      */
-    protected $lookupConstants = [
-        ACE::ACE_TYPE_ACCESS_ALLOWED => 'ACE_TYPE_ACCESS_ALLOWED',
-        ACE::ACE_TYPE_ACCESS_DENIED  => 'ACE_TYPE_ACCESS_DENIED',
-        ACE::ACE_TYPE_SYSTEM_AUDIT   => 'ACE_TYPE_SYSTEM_AUDIT',
-        ACE::ACE_TYPE_SYSTEM_ALARM   => 'ACE_TYPE_SYSTEM_ALARM',
-    ];
+    protected $mask = 0;
 
     /**
      * @var array
      */
-    protected $tokenConstants = [
-        'ALLOW' => ACE::ACE_TYPE_ACCESS_ALLOWED,
-        'DENY'  => ACE::ACE_TYPE_ACCESS_DENIED,
-        'AUDIT' => ACE::ACE_TYPE_SYSTEM_AUDIT,
-        'ALARM' => ACE::ACE_TYPE_SYSTEM_ALARM
-    ];
+    protected $tokenConstants = [];
+
+    /**
+     * Constructor
+     *
+     * @param int $mask optional
+     */
+    public function __construct($mask = null)
+    {
+        if (null !== $mask) {
+            $this->mask = $this->getMask($mask);
+        }
+    }
+
+    /**
+     * @return int
+     */
+    public function get()
+    {
+        return $this->mask;
+    }
 
     /**
      * @param int $mask
      *
      * @return bool
      */
-    protected function isValid($mask)
+    abstract protected function isValid($mask);
+
+    /**
+     * @param mixed $mask
+     *
+     * @return InvalidArgumentException
+     */
+    abstract protected function unsupportedMask($mask);
+
+    /**
+     * @param mixed $mask
+     *
+     * @return InvalidArgumentException
+     */
+    abstract protected function maskNotInteger($mask);
+
+    /**
+     * @param mixed $mask
+     *
+     * @return int
+     * @throws InvalidArgumentException
+     */
+    protected function getMask($mask)
     {
-        if ( ! is_int($mask)) {
-            return false;
+        if (is_string($mask)) {
+            $mask = strtoupper($mask);
+
+            if ( ! isset($this->tokenConstants[$mask])) {
+                throw $this->unsupportedMask($mask);
+            }
+
+            $mask = $this->tokenConstants[$mask];
         }
 
-        return in_array($mask, $this->lookupConstants, true);
-    }
+        if ( ! is_int($mask)) {
+            throw $this->maskNotInteger($mask);
+        }
 
-    /**
-     * @param mixed $mask
-     *
-     * @return InvalidArgumentException
-     */
-    protected function unsupportedMask($mask)
-    {
-        return InvalidArgumentException::unsupportedAceTypeMask($mask);
-    }
+        if ( ! $this->isValid($mask)) {
+            throw $this->unsupportedMask($mask);
+        }
 
-    /**
-     * @param mixed $mask
-     *
-     * @return InvalidArgumentException
-     */
-    protected function maskNotInteger($mask)
-    {
-        return InvalidArgumentException::aceTypeMaskNotInteger($mask);
+        return $mask;
     }
 }
