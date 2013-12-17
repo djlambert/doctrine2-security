@@ -24,6 +24,9 @@
 namespace CrEOF\Security\SecuredEntity;
 
 use CrEOF\Security\Exception\InvalidArgumentException;
+use CrEOF\Security\SecuredEntity\ACE\AccessMask;
+use CrEOF\Security\SecuredEntity\ACE\FlagMask;
+use CrEOF\Security\SecuredEntity\ACE\TypeMask;
 
 /**
  * Access control entry (ACE) class
@@ -88,76 +91,16 @@ class ACE
     const ACE_MASK_                 = 0b00000100000000000000000000000000; //  67108864,  0x4000000, 1 << 26
     const ACE_MASK_                 = 0b00001000000000000000000000000000; // 134217728,  0x8000000, 1 << 27
     const ACE_MASK_                 = 0b00010000000000000000000000000000; // 268435456, 0x10000000, 1 << 28
-    */
 
     const ACE_MASK_FULL_CONTROL     = 0b00011111111111111111111111111111; // 536870911, 0x1FFFFFFF, 1 << 0 | 1 << 1 | ... | 1 << 28
+    */
+
+    const ACE_MASK_FULL_CONTROL     = 0b00000000000011100000000110111111;
 
     /**
-     * @var SID
+     * @var array
      */
-    protected $sid = null;
-
-    /**
-     * @var int
-     */
-    protected $typeMask = 0;
-
-    /**
-     * @var int
-     */
-    protected $accessMask = 0;
-
-    /**
-     * @var int
-     */
-    protected $flagMask = 0;
-
-    /**
-     * Valid flags for access ACEs
-     *
-     * @var int[]
-     */
-    protected $accessFlags = [
-        self::ACE_FLAG_INHERIT,
-        self::ACE_FLAG_NO_PROPAGATE_INHERIT,
-        self::ACE_FLAG_INHERIT_ONLY
-    ];
-
-    /**
-     * Valid flags for audit ACEs
-     *
-     * @var int[]
-     */
-    protected $auditFlags = [
-        self::ACE_FLAG_SUCCESSFUL_ACCESS,
-        self::ACE_FLAG_FAILED_ACCESS
-    ];
-
-    /**
-     * Type mask name lookup
-     *
-     * @var string[]
-     */
-    protected $typeConstants = [
-        self::ACE_TYPE_ACCESS_ALLOWED => 'ACE_TYPE_ACCESS_ALLOWED',
-        self::ACE_TYPE_ACCESS_DENIED  => 'ACE_TYPE_ACCESS_DENIED',
-        self::ACE_TYPE_SYSTEM_AUDIT   => 'ACE_TYPE_SYSTEM_AUDIT',
-        self::ACE_TYPE_SYSTEM_ALARM   => 'ACE_TYPE_SYSTEM_ALARM',
-    ];
-
-    /**
-     * Flag mask name lookup
-     *
-     * @var string[]
-     */
-    protected $flagConstants = [
-        self::ACE_FLAG_INHERIT              => 'ACE_FLAG_INHERIT',
-        self::ACE_FLAG_NO_PROPAGATE_INHERIT => 'ACE_FLAG_NO_PROPAGATE_INHERIT',
-        self::ACE_FLAG_INHERIT_ONLY         => 'ACE_FLAG_INHERIT_ONLY',
-        self::ACE_FLAG_SUCCESSFUL_ACCESS    => 'ACE_FLAG_SUCCESSFUL_ACCESS',
-        self::ACE_FLAG_FAILED_ACCESS        => 'ACE_FLAG_FAILED_ACCESS',
-        self::ACE_FLAG_IDENTIFIER_GROUP     => 'ACE_FLAG_IDENTIFIER_GROUP'
-    ];
+    protected $properties = [];
 
     /**
      * Constructor
@@ -168,117 +111,25 @@ class ACE
      */
     public function __construct($typeMask = 0)
     {
-        if ( ! is_int($typeMask)) {
-            throw InvalidArgumentException::aceTypeMaskNotInteger();
+        $this->properties['type']   = new TypeMask($typeMask);
+        $this->properties['access'] = new AccessMask();
+        $this->properties['flag']   = new FlagMask($typeMask);
+        $this->properties['sid']    = new SID();
+    }
+
+    /**
+     * @param string $name
+     *
+     * @return mixed
+     * @throws
+     */
+    public function __get($name)
+    {
+        if ( ! isset($this->properties[$name])) {
+            throw \InvalidArgumentException('ERROR');
         }
 
-        if ($typeMask !== self::ACE_TYPE_ACCESS_ALLOWED && $typeMask !== self::ACE_TYPE_ACCESS_DENIED && $typeMask !== self::ACE_TYPE_SYSTEM_AUDIT && $typeMask !== self::ACE_TYPE_SYSTEM_ALARM) {
-            throw InvalidArgumentException::unsupportedAceTypeMask($typeMask);
-        }
-
-        $this->typeMask = $typeMask;
-    }
-
-    /**
-     * Set the accessMask
-     *
-     * @param mixed $permission
-     *
-     * @return ACE
-     */
-    public function setAccess($permission)
-    {
-        $this->accessMask = $this->getAccessMask($permission);
-
-        return $this;
-    }
-
-    /**
-     * Adds a permission to the accessMask
-     *
-     * @param mixed $permission
-     *
-     * @return ACE
-     */
-    public function addAccess($permission)
-    {
-        $this->accessMask |= $this->getAccessMask($permission);
-
-        return $this;
-    }
-
-    /**
-     * Removes a permission from the acccesMask
-     *
-     * @param mixed $permission
-     *
-     * @return ACE
-     */
-    public function removeAccess($permission)
-    {
-        $this->accessMask &= ~$this->getAccessMask($permission);
-
-        return $this;
-    }
-
-    /**
-     * Returns the accessMask value
-     *
-     * @return int
-     */
-    public function getAccess()
-    {
-        return $this->accessMask;
-    }
-
-    /**
-     * Resets the accessMask value
-     *
-     * @return ACE
-     */
-    public function resetAccess()
-    {
-        $this->accessMask = 0;
-
-        return $this;
-    }
-
-    /**
-     * Adds a flag to the flagMask
-     *
-     * @param mixed $flag
-     *
-     * @return ACE
-     */
-    public function addFlag($flag)
-    {
-        $this->flagMask |= $this->getFlagMask($flag);
-
-        return $this;
-    }
-
-    /**
-     * Removes a permission from the flagMask
-     *
-     * @param mixed $flag
-     *
-     * @return ACE
-     */
-    public function removeFlag($flag)
-    {
-        $this->flagMask &= ~$this->getFlagMask($flag);
-
-        return $this;
-    }
-
-    /**
-     * Returns the flagMask value
-     *
-     * @return int
-     */
-    public function getFlag()
-    {
-        return $this->flagMask;
+        return $this->properties[$name];
     }
 
     /**
@@ -297,10 +148,10 @@ class ACE
             $this->sid = new SID($sid, $isGroup);
         }
 
-        $this->flagMask &= ~self::ACE_FLAG_IDENTIFIER_GROUP;
+        $this->flag &= ~self::ACE_FLAG_IDENTIFIER_GROUP;
 
         if ($this->sid->isGroup()) {
-            $this->flagMask |= self::ACE_FLAG_IDENTIFIER_GROUP;
+            $this->flag |= self::ACE_FLAG_IDENTIFIER_GROUP;
         }
 
         return $this;
@@ -314,157 +165,5 @@ class ACE
     public function getSid()
     {
         return $this->sid;
-    }
-
-    /**
-     * Get ACE type
-     *
-     * @return int
-     */
-    public function getType()
-    {
-        return $this->typeMask;
-    }
-
-    /**
-     * Does ACE type match passed type mask?
-     *
-     * @param int $typeMask
-     *
-     * @return bool
-     */
-    public function isType($typeMask)
-    {
-        return $typeMask === ($this->typeMask & $typeMask);
-    }
-
-    /**
-     * Get mask from permission value
-     *
-     * @param mixed $access
-     *
-     * @return int
-     * @throws InvalidArgumentException
-     */
-    private function getAccessMask($access)
-    {
-        if (is_array($access)) {
-            $access = array_reduce($access, function ($combined, $val) {
-                return $combined |= $this->getAccessMask($val);
-            }, 0);
-        }
-
-        if (is_string($access)) {
-            if ( ! defined($name = $this->getConstName($type, $access))) {
-                throw InvalidArgumentException::unsupportedAceAccessMask($access);
-            }
-
-            return constant($name);
-        }
-
-        if ( ! is_int($access)) {
-            throw InvalidArgumentException::aceAccessMaskNotInteger();
-        }
-
-        return $access;
-    }
-
-    /**
-     * Get mask from flag value
-     *
-     * @param mixed $flag
-     *
-     * @return int
-     * @throws InvalidArgumentException
-     */
-    private function getFlagMask($flag)
-    {
-        $flag = $this->getMaskValue('flag', $flag);
-
-        if ( ! $this->isFlagValid($flag)) {
-            throw InvalidArgumentException::unsupportedFlagMaskForAce($this->flagConstants[$flag], $this->typeConstants[$this->getType()]);
-        }
-
-        return $flag;
-    }
-
-    /**
-     * @param string $type
-     * @param mixed  $value
-     *
-     * @return mixed
-     * @throws InvalidArgumentException
-     */
-    private function getMaskValue($type, $value)
-    {
-        if (is_array($value)) {
-            $value = array_reduce($value, function ($combined, $val) use ($type) {
-                return $combined |= $this->getMaskValue($type, $val);
-            }, 0);
-        }
-
-        if (is_string($value)) {
-            if ( ! defined($name = $this->getConstName($type, $value))) {
-                $exception = sprintf('unsupportedAce%sMask', ucfirst($type));
-
-                throw InvalidArgumentException::$exception($value);
-            }
-
-            return constant($name);
-        }
-
-        if ( ! is_int($value)) {
-            $exception = sprintf('ace%sMaskNotInteger', ucfirst($type));
-
-            throw InvalidArgumentException::$exception();
-        }
-
-        return $value;
-    }
-
-    /**
-     * Build constant name from type and name
-     *
-     * @param string $type
-     * @param string $name
-     *
-     * @return string
-     */
-    private function getConstName($type, $name)
-    {
-        switch ($type) {
-            case 'access':
-                $type = 'mask';
-                break;
-            case 'flag':
-                $type = $name;
-                $name = 'access';
-                break;
-        }
-
-        return sprintf('static::ACE_%s_%s', strtoupper($type === 'access' ? 'mask' : $type), strtoupper($name));
-    }
-
-    /**
-     * Check if flag is valid for ACE type
-     *
-     * @param int $flag
-     *
-     * @return bool
-     */
-    private function isFlagValid($flag)
-    {
-        switch ($this->getType()) {
-            case self::ACE_TYPE_ACCESS_ALLOWED:
-                // no break
-            case self::ACE_TYPE_ACCESS_DENIED:
-                return in_array($flag, $this->accessFlags);
-            case self::ACE_TYPE_SYSTEM_AUDIT:
-                // no break
-            case self::ACE_TYPE_SYSTEM_ALARM:
-                return in_array($flag, $this->auditFlags);
-            default:
-                return false;
-        }
     }
 }

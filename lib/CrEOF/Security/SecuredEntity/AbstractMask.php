@@ -94,8 +94,8 @@ abstract class AbstractMask extends AbstractSimpleMask
     protected function getMask($mask)
     {
         if (is_array($mask)) {
-            $mask = array_reduce($mask, function ($run, $add) {
-                return $run |= $this->getMask($add);
+            $mask = array_reduce($mask, function ($combined, $val) {
+                return $combined |= $this->getMask($val);
             }, 0);
         }
 

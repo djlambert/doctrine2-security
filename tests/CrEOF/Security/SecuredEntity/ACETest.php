@@ -44,7 +44,7 @@ class ACETest extends \PHPUnit_Framework_TestCase
     {
         $ace = new ACE($typeMask);
 
-        $this->assertEquals($typeMask, $ace->getType());
+        $this->assertEquals($typeMask, $ace->type->get());
     }
 
     /**
@@ -54,7 +54,7 @@ class ACETest extends \PHPUnit_Framework_TestCase
     {
         $ace = new ACE();
 
-        $this->assertEquals(ACE::ACE_TYPE_ACCESS_ALLOWED, $ace->getType());
+        $this->assertEquals(ACE::ACE_TYPE_ACCESS_ALLOWED, $ace->type->get());
     }
 
     /**
@@ -120,14 +120,14 @@ class ACETest extends \PHPUnit_Framework_TestCase
         $ace = new ACE();
 
         foreach ($add as $perms) {
-            $ace->addAccess($perms);
+            $ace->access->add($perms);
         }
 
         foreach ($remove as $perms) {
-            $ace->removeAccess($perms);
+            $ace->access->remove($perms);
         }
 
-        $this->assertEquals($expected, $ace->getAccess());
+        $this->assertEquals($expected, $ace->access->get());
     }
 
     /**
@@ -144,14 +144,14 @@ class ACETest extends \PHPUnit_Framework_TestCase
         $ace = new ACE($type);
 
         foreach ($add as $flags) {
-            $ace->addFlag($flags);
+            $ace->flag->add($flags);
         }
 
         foreach ($remove as $flags) {
-            $ace->removeFlag($flags);
+            $ace->flag->remove($flags);
         }
 
-        $this->assertEquals($expected, $ace->getFlag());
+        $this->assertEquals($expected, $ace->flag->get());
     }
 
     /**
@@ -292,7 +292,7 @@ class ACETest extends \PHPUnit_Framework_TestCase
             ],
             [
                 'type'     => ACE::ACE_TYPE_SYSTEM_AUDIT,
-                'add'      => ['success'],
+                'add'      => ['successful'],
                 'remove'   => [],
                 'expected' => ACE::ACE_FLAG_SUCCESSFUL_ACCESS
             ],
@@ -316,7 +316,7 @@ class ACETest extends \PHPUnit_Framework_TestCase
             ],
             [
                 'type'     => ACE::ACE_TYPE_SYSTEM_AUDIT,
-                'add'      => ['success', 'failed'],
+                'add'      => ['successful', 'failed'],
                 'remove'   => [],
                 'expected' => ACE::ACE_FLAG_SUCCESSFUL_ACCESS + ACE::ACE_FLAG_FAILED_ACCESS
             ],
@@ -328,7 +328,7 @@ class ACETest extends \PHPUnit_Framework_TestCase
             ],
             [
                 'type'     => ACE::ACE_TYPE_SYSTEM_AUDIT,
-                'add'      => ['success', 'failed'],
+                'add'      => ['successful', 'failed'],
                 'remove'   => ['failed'],
                 'expected' => ACE::ACE_FLAG_SUCCESSFUL_ACCESS
             ],
@@ -340,7 +340,7 @@ class ACETest extends \PHPUnit_Framework_TestCase
             ],
             [
                 'type'     => ACE::ACE_TYPE_SYSTEM_ALARM,
-                'add'      => ['success'],
+                'add'      => ['successful'],
                 'remove'   => [],
                 'expected' => ACE::ACE_FLAG_SUCCESSFUL_ACCESS
             ],
@@ -364,7 +364,7 @@ class ACETest extends \PHPUnit_Framework_TestCase
             ],
             [
                 'type'     => ACE::ACE_TYPE_SYSTEM_ALARM,
-                'add'      => ['success', 'failed'],
+                'add'      => ['successful', 'failed'],
                 'remove'   => [],
                 'expected' => ACE::ACE_FLAG_SUCCESSFUL_ACCESS + ACE::ACE_FLAG_FAILED_ACCESS
             ],
@@ -376,7 +376,7 @@ class ACETest extends \PHPUnit_Framework_TestCase
             ],
             [
                 'type'     => ACE::ACE_TYPE_SYSTEM_ALARM,
-                'add'      => ['success', 'failed'],
+                'add'      => ['successful', 'failed'],
                 'remove'   => ['failed'],
                 'expected' => ACE::ACE_FLAG_SUCCESSFUL_ACCESS
             ],
