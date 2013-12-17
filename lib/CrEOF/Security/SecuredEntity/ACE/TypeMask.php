@@ -21,9 +21,11 @@
  * THE SOFTWARE.
  */
 
-namespace CrEOF\Security\SecuredEntity;
+namespace CrEOF\Security\SecuredEntity\ACE;
 
 use CrEOF\Security\Exception\InvalidArgumentException;
+use CrEOF\Security\SecuredEntity\AbstractSimpleMask;
+use CrEOF\Security\SecuredEntity\ACE;
 
 /**
  * TypeMask class
@@ -46,13 +48,27 @@ class TypeMask extends AbstractSimpleMask
     ];
 
     /**
+     * Type mask token value lookup
+     *
+     * Tokens with underscores removed included for camelCase support
+     *
      * @var array
      */
     protected $tokenConstants = [
-        'ALLOW' => ACE::ACE_TYPE_ACCESS_ALLOWED,
-        'DENY'  => ACE::ACE_TYPE_ACCESS_DENIED,
-        'AUDIT' => ACE::ACE_TYPE_SYSTEM_AUDIT,
-        'ALARM' => ACE::ACE_TYPE_SYSTEM_ALARM
+        'ACCESS_ALLOWED' => ACE::ACE_TYPE_ACCESS_ALLOWED,
+        'ACCESSALLOWED'  => ACE::ACE_TYPE_ACCESS_ALLOWED,
+        'ALLOWED'        => ACE::ACE_TYPE_ACCESS_ALLOWED,
+        'ALLOW'          => ACE::ACE_TYPE_ACCESS_ALLOWED,
+        'ACCESS_DENIED'  => ACE::ACE_TYPE_ACCESS_DENIED,
+        'ACCESSDENIED'   => ACE::ACE_TYPE_ACCESS_DENIED,
+        'DENIED'         => ACE::ACE_TYPE_ACCESS_DENIED,
+        'DENY'           => ACE::ACE_TYPE_ACCESS_DENIED,
+        'SYSTEM_AUDIT'   => ACE::ACE_TYPE_SYSTEM_AUDIT,
+        'SYSTEMAUDIT'    => ACE::ACE_TYPE_SYSTEM_AUDIT,
+        'AUDIT'          => ACE::ACE_TYPE_SYSTEM_AUDIT,
+        'SYSTEM_ALARM'   => ACE::ACE_TYPE_SYSTEM_ALARM,
+        'SYSTEMALARM'    => ACE::ACE_TYPE_SYSTEM_ALARM,
+        'ALARM'          => ACE::ACE_TYPE_SYSTEM_ALARM
     ];
 
     /**
@@ -62,11 +78,7 @@ class TypeMask extends AbstractSimpleMask
      */
     protected function isValid($mask)
     {
-        if ( ! is_int($mask)) {
-            return false;
-        }
-
-        return in_array($mask, $this->lookupConstants, true);
+        return isset($this->lookupConstants[$mask]);
     }
 
     /**
