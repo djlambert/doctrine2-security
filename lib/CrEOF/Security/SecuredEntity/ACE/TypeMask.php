@@ -72,16 +72,6 @@ class TypeMask extends AbstractSimpleMask
     ];
 
     /**
-     * @param int $mask
-     *
-     * @return bool
-     */
-    protected function isValid($mask)
-    {
-        return isset($this->lookupConstants[$mask]);
-    }
-
-    /**
      * @param mixed $mask
      *
      * @return InvalidArgumentException

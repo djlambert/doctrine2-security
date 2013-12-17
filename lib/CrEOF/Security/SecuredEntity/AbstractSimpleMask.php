@@ -41,9 +41,18 @@ abstract class AbstractSimpleMask
     protected $mask = 0;
 
     /**
+     * Name lookup
+     *
      * @var array
      */
     protected $tokenConstants = [];
+
+    /**
+     * Token value lookup
+     *
+     * @var array
+     */
+    protected $lookupConstants = [];
 
     /**
      * Constructor
@@ -66,13 +75,6 @@ abstract class AbstractSimpleMask
     }
 
     /**
-     * @param int $mask
-     *
-     * @return bool
-     */
-    abstract protected function isValid($mask);
-
-    /**
      * @param mixed $mask
      *
      * @return InvalidArgumentException
@@ -85,6 +87,16 @@ abstract class AbstractSimpleMask
      * @return InvalidArgumentException
      */
     abstract protected function maskNotInteger($mask);
+
+    /**
+     * @param int $mask
+     *
+     * @return bool
+     */
+    protected function isValid($mask)
+    {
+        return isset($this->lookupConstants[$mask]);
+    }
 
     /**
      * @param mixed $mask
