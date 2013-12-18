@@ -34,6 +34,8 @@ use CrEOF\Security\Exception\InvalidArgumentException;
 abstract class AbstractMask extends AbstractSimpleMask
 {
     /**
+     * Mask of all valid masks
+     *
      * @var int
      */
     protected $validMasks;
@@ -79,7 +81,9 @@ abstract class AbstractMask extends AbstractSimpleMask
     }
 
     /**
-     * @param int $mask
+     * Check if mask contains passed mask
+     *
+     * @param mixed $mask
      *
      * @return bool
      */
@@ -88,6 +92,20 @@ abstract class AbstractMask extends AbstractSimpleMask
         $mask = $this->getMask($mask);
 
         return $mask === ($this->mask & $mask);
+    }
+
+    /**
+     * Return true if passed mask is exactly equal
+     *
+     * @param mixed $mask
+     *
+     * @return bool
+     */
+    public function equals($mask)
+    {
+        $mask = $this->getMask($mask);
+
+        return $mask === $this->mask;
     }
 
     /**
@@ -103,6 +121,8 @@ abstract class AbstractMask extends AbstractSimpleMask
     }
 
     /**
+     * Validate and get mask value
+     *
      * @param mixed $mask
      *
      * @return int
@@ -120,6 +140,8 @@ abstract class AbstractMask extends AbstractSimpleMask
     }
 
     /**
+     * Is mask valid and supported?
+     *
      * @param int $mask
      *
      * @return bool
@@ -130,6 +152,8 @@ abstract class AbstractMask extends AbstractSimpleMask
     }
 
     /**
+     * Get mask of all valid masks
+     *
      * @return int
      */
     protected function getValidMasks()

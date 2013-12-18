@@ -56,6 +56,23 @@ class AccessMaskTest extends \PHPUnit_Framework_TestCase
         }
 
         $this->assertEquals($expected, $mask->get());
+        $this->assertTrue($mask->equals($expected));
+        $this->assertTrue($mask->contains($expected));
+    }
+
+    /**
+     * @param int  $mask
+     * @param int  $contains
+     * @param bool $expected
+     *
+     * @test
+     * @dataProvider accessMaskContainsData
+     */
+    public function aceAccessMaskContainsTest($mask, $contains, $expected)
+    {
+        $mask = new AccessMask($mask);
+
+        $this->assertEquals($expected, $mask->contains($contains));
     }
 
     /**
@@ -64,60 +81,129 @@ class AccessMaskTest extends \PHPUnit_Framework_TestCase
     public function accessMaskData()
     {
         return [
-//            // Add string values
-//            [
-//                'add'      => ['view', 'create'],
-//                'remove'   => [],
-//                'expected' => ACE::ACE_MASK_VIEW + ACE::ACE_MASK_CREATE
-//            ],
-//            // Add int values
-//            [
-//                'add'      => [ACE::ACE_MASK_VIEW, ACE::ACE_MASK_CREATE],
-//                'remove'   => [],
-//                'expected' => ACE::ACE_MASK_VIEW + ACE::ACE_MASK_CREATE
-//            ],
+            // Add string values
+            [
+                'add'      => ['view', 'create'],
+                'remove'   => [],
+                'expected' => ACE::ACE_MASK_VIEW | ACE::ACE_MASK_CREATE
+            ],
+            // Add int values
+            [
+                'add'      => [ACE::ACE_MASK_VIEW, ACE::ACE_MASK_CREATE],
+                'remove'   => [],
+                'expected' => ACE::ACE_MASK_VIEW | ACE::ACE_MASK_CREATE
+            ],
             // Add array of string values
             [
                 'add'      => [['view', 'create']],
                 'remove'   => [],
-                'expected' => ACE::ACE_MASK_VIEW + ACE::ACE_MASK_CREATE
+                'expected' => ACE::ACE_MASK_VIEW | ACE::ACE_MASK_CREATE
             ],
             // Add array of int values
             [
                 'add'      => [[ACE::ACE_MASK_VIEW, ACE::ACE_MASK_CREATE]],
                 'remove'   => [],
-                'expected' => ACE::ACE_MASK_VIEW + ACE::ACE_MASK_CREATE
+                'expected' => ACE::ACE_MASK_VIEW | ACE::ACE_MASK_CREATE
             ],
             // Add and remove string values
             [
                 'add'      => ['view', 'create', 'modify', 'delete'],
                 'remove'   => ['modify', 'delete'],
-                'expected' => ACE::ACE_MASK_VIEW + ACE::ACE_MASK_CREATE
+                'expected' => ACE::ACE_MASK_VIEW | ACE::ACE_MASK_CREATE
             ],
             // Add and remove array of string values
             [
                 'add'      => [['view', 'create', 'modify', 'delete']],
                 'remove'   => [['modify', 'delete']],
-                'expected' => ACE::ACE_MASK_VIEW + ACE::ACE_MASK_CREATE
+                'expected' => ACE::ACE_MASK_VIEW | ACE::ACE_MASK_CREATE
             ],
             // Add and remove int values
             [
                 'add'      => [ACE::ACE_MASK_VIEW, ACE::ACE_MASK_CREATE, ACE::ACE_MASK_MODIFY, ACE::ACE_MASK_DELETE],
                 'remove'   => [ACE::ACE_MASK_MODIFY, ACE::ACE_MASK_DELETE],
-                'expected' => ACE::ACE_MASK_VIEW + ACE::ACE_MASK_CREATE
+                'expected' => ACE::ACE_MASK_VIEW | ACE::ACE_MASK_CREATE
             ],
             // Add and remove array of int values
             [
                 'add'      => [[ACE::ACE_MASK_VIEW, ACE::ACE_MASK_CREATE, ACE::ACE_MASK_MODIFY, ACE::ACE_MASK_DELETE]],
                 'remove'   => [[ACE::ACE_MASK_MODIFY, ACE::ACE_MASK_DELETE]],
-                'expected' => ACE::ACE_MASK_VIEW + ACE::ACE_MASK_CREATE
+                'expected' => ACE::ACE_MASK_VIEW | ACE::ACE_MASK_CREATE
             ],
             // Add and remove multiple arrays of string values
             [
                 'add'      => [['view', 'create'], ['modify', 'delete']],
                 'remove'   => [['modify'], ['delete']],
-                'expected' => ACE::ACE_MASK_VIEW + ACE::ACE_MASK_CREATE
+                'expected' => ACE::ACE_MASK_VIEW | ACE::ACE_MASK_CREATE
             ],
+            [
+                'add'      => [ACE::ACE_MASK_VIEW, ACE::ACE_MASK_CREATE, ACE::ACE_MASK_MODIFY, ACE::ACE_MASK_DELETE, ACE::ACE_MASK_UNDELETE, ACE::ACE_MASK_SEARCH, ACE::ACE_MASK_READ_ATTRIBUTES, ACE::ACE_MASK_WRITE_ATTRIBUTES, ACE::ACE_MASK_READ_ACL, ACE::ACE_MASK_WRITE_ACL, ACE::ACE_MASK_WRITE_OWNER],
+                'remove'   => [],
+                'expected' => ACE::ACE_MASK_FULL_CONTROL
+            ],
+            [
+                'add'      => ['view', 'create', 'modify', 'delete', 'undelete', 'search', 'read_attributes', 'write_attributes', 'read_acl', 'write_acl', 'write_owner'],
+                'remove'   => [],
+                'expected' => ACE::ACE_MASK_FULL_CONTROL
+            ],
+            [
+                'add'      => ['readAttributes', 'writeAttributes', 'readAcl', 'writeAcl', 'writeOwner'],
+                'remove'   => [],
+                'expected' => ACE::ACE_MASK_READ_ATTRIBUTES | ACE::ACE_MASK_WRITE_ATTRIBUTES | ACE::ACE_MASK_READ_ACL | ACE::ACE_MASK_WRITE_ACL | ACE::ACE_MASK_WRITE_OWNER
+            ]
+        ];
+    }
+
+    /**
+     * @return array[]
+     */
+    public function accessMaskContainsData()
+    {
+        return [
+            [
+                'mask'     => ACE::ACE_MASK_VIEW | ACE::ACE_MASK_CREATE | ACE::ACE_MASK_MODIFY | ACE::ACE_MASK_DELETE,
+                'contains' => ACE::ACE_MASK_VIEW | ACE::ACE_MASK_MODIFY,
+                'expected' => true
+            ],
+            [
+                'mask'     => ACE::ACE_MASK_VIEW | ACE::ACE_MASK_CREATE | ACE::ACE_MASK_MODIFY | ACE::ACE_MASK_DELETE,
+                'contains' => ACE::ACE_MASK_VIEW | ACE::ACE_MASK_MODIFY | ACE::ACE_MASK_DELETE,
+                'expected' => true
+            ],
+            [
+                'mask'     => ACE::ACE_MASK_VIEW | ACE::ACE_MASK_CREATE | ACE::ACE_MASK_MODIFY | ACE::ACE_MASK_DELETE,
+                'contains' => ACE::ACE_MASK_VIEW | ACE::ACE_MASK_MODIFY | ACE::ACE_MASK_DELETE,
+                'expected' => true
+            ],
+            [
+                'mask'     => ACE::ACE_MASK_FULL_CONTROL,
+                'contains' => ACE::ACE_MASK_SEARCH | ACE::ACE_MASK_UNDELETE | ACE::ACE_MASK_WRITE_OWNER,
+                'expected' => true
+            ],
+            [
+                'mask'     => ACE::ACE_MASK_FULL_CONTROL,
+                'contains' => ACE::ACE_MASK_VIEW | ACE::ACE_MASK_CREATE | ACE::ACE_MASK_MODIFY | ACE::ACE_MASK_DELETE | ACE::ACE_MASK_UNDELETE | ACE::ACE_MASK_SEARCH | ACE::ACE_MASK_READ_ATTRIBUTES | ACE::ACE_MASK_WRITE_ATTRIBUTES | ACE::ACE_MASK_READ_ACL | ACE::ACE_MASK_WRITE_ACL | ACE::ACE_MASK_WRITE_OWNER,
+                'expected' => true
+            ],
+            [
+                'mask'     => ACE::ACE_MASK_VIEW | ACE::ACE_MASK_CREATE | ACE::ACE_MASK_MODIFY | ACE::ACE_MASK_DELETE | ACE::ACE_MASK_UNDELETE | ACE::ACE_MASK_SEARCH | ACE::ACE_MASK_READ_ATTRIBUTES | ACE::ACE_MASK_WRITE_ATTRIBUTES | ACE::ACE_MASK_READ_ACL | ACE::ACE_MASK_WRITE_ACL | ACE::ACE_MASK_WRITE_OWNER,
+                'contains' => ACE::ACE_MASK_FULL_CONTROL,
+                'expected' => true
+            ],
+            [
+                'mask'     => ACE::ACE_MASK_VIEW | ACE::ACE_MASK_CREATE,
+                'contains' => ACE::ACE_MASK_DELETE,
+                'expected' => false
+            ],
+            [
+                'mask'     => ACE::ACE_MASK_VIEW | ACE::ACE_MASK_CREATE,
+                'contains' => ACE::ACE_MASK_VIEW | ACE::ACE_MASK_DELETE,
+                'expected' => false
+            ],
+            [
+                'mask'     => ACE::ACE_MASK_VIEW | ACE::ACE_MASK_CREATE | ACE::ACE_MASK_MODIFY | ACE::ACE_MASK_DELETE | ACE::ACE_MASK_UNDELETE | ACE::ACE_MASK_SEARCH | ACE::ACE_MASK_READ_ATTRIBUTES | ACE::ACE_MASK_WRITE_ATTRIBUTES | ACE::ACE_MASK_READ_ACL | ACE::ACE_MASK_WRITE_ACL,
+                'contains' => ACE::ACE_MASK_FULL_CONTROL,
+                'expected' => false
+            ]
         ];
     }
 }

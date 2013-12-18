@@ -25,7 +25,7 @@ namespace CrEOF\Security\SecuredEntity;
 
 use CrEOF\Security\Exception\InvalidArgumentException;
 use CrEOF\Security\SecuredEntity\ACE;
-use CrEOF\Security\SecuredEntity\ACE\FlagMask;
+use CrEOF\Security\SecuredEntity\ACE\AbstractFlagMask;
 
 /**
  * FlagMask test
@@ -42,11 +42,11 @@ class FlagMaskTest extends \PHPUnit_Framework_TestCase
      * @param int   $expected
      *
      * @test
-     * @dataProvider aceFlagMaskData
+     * @dataProvider aceFlagMaskMultiValueData
      */
     public function aceFlagMaskTest($type, $add, $remove, $expected)
     {
-        $flag = new FlagMask($type);
+        $flag = AbstractFlagMask::create($type);
 
         foreach ($add as $mask) {
             $flag->add($mask);
@@ -65,11 +65,11 @@ class FlagMaskTest extends \PHPUnit_Framework_TestCase
      * @param int   $expected
      *
      * @test
-     * @dataProvider aceFlagMaskValidTypeData
+     * @dataProvider aceFlagMaskSimpleValidData
      */
     public function aceFlagMaskValidTypeTest($type, $mask, $expected)
     {
-        $flag = new FlagMask($type, $mask);
+        $flag = AbstractFlagMask::create($type, $mask);
 
         $this->assertEquals($expected, $flag->get());
     }
@@ -84,13 +84,13 @@ class FlagMaskTest extends \PHPUnit_Framework_TestCase
      */
     public function aceFlagMaskInvalidTypeTest($type, $mask)
     {
-        new FlagMask($type, $mask);
+        AbstractFlagMask::create($type, $mask);
     }
 
     /**
      * @return array[]
      */
-    public function aceFlagMaskValidTypeData()
+    public function aceFlagMaskSimpleValidData()
     {
         return [
             [ACE::ACE_TYPE_ACCESS_ALLOWED, ACE::ACE_FLAG_INHERIT, ACE::ACE_FLAG_INHERIT],
@@ -154,38 +154,38 @@ class FlagMaskTest extends \PHPUnit_Framework_TestCase
     /**
      * @return array[]
      */
-    public function aceFlagMaskData()
+    public function aceFlagMaskMultiValueData()
     {
         return [
             [
                 'type'     => ACE::ACE_TYPE_ACCESS_ALLOWED,
                 'add'      => [ACE::ACE_FLAG_INHERIT, ACE::ACE_FLAG_NO_PROPAGATE_INHERIT,  ACE::ACE_FLAG_INHERIT_ONLY],
                 'remove'   => [],
-                'expected' => ACE::ACE_FLAG_INHERIT + ACE::ACE_FLAG_NO_PROPAGATE_INHERIT + ACE::ACE_FLAG_INHERIT_ONLY
+                'expected' => ACE::ACE_FLAG_INHERIT | ACE::ACE_FLAG_NO_PROPAGATE_INHERIT | ACE::ACE_FLAG_INHERIT_ONLY
             ],
             [
                 'type'     => ACE::ACE_TYPE_ACCESS_DENIED,
                 'add'      => [ACE::ACE_FLAG_INHERIT, ACE::ACE_FLAG_NO_PROPAGATE_INHERIT,  ACE::ACE_FLAG_INHERIT_ONLY],
                 'remove'   => [],
-                'expected' => ACE::ACE_FLAG_INHERIT + ACE::ACE_FLAG_NO_PROPAGATE_INHERIT + ACE::ACE_FLAG_INHERIT_ONLY
+                'expected' => ACE::ACE_FLAG_INHERIT | ACE::ACE_FLAG_NO_PROPAGATE_INHERIT | ACE::ACE_FLAG_INHERIT_ONLY
             ],
             [
                 'type'     => ACE::ACE_TYPE_ACCESS_ALLOWED,
                 'add'      => [ACE::ACE_FLAG_INHERIT, ACE::ACE_FLAG_NO_PROPAGATE_INHERIT,  ACE::ACE_FLAG_INHERIT_ONLY],
                 'remove'   => [ACE::ACE_FLAG_INHERIT_ONLY],
-                'expected' => ACE::ACE_FLAG_INHERIT + ACE::ACE_FLAG_NO_PROPAGATE_INHERIT
+                'expected' => ACE::ACE_FLAG_INHERIT | ACE::ACE_FLAG_NO_PROPAGATE_INHERIT
             ],
             [
                 'type'     => ACE::ACE_TYPE_ACCESS_DENIED,
                 'add'      => [ACE::ACE_FLAG_INHERIT, ACE::ACE_FLAG_NO_PROPAGATE_INHERIT,  ACE::ACE_FLAG_INHERIT_ONLY],
                 'remove'   => [ACE::ACE_FLAG_INHERIT_ONLY],
-                'expected' => ACE::ACE_FLAG_INHERIT + ACE::ACE_FLAG_NO_PROPAGATE_INHERIT
+                'expected' => ACE::ACE_FLAG_INHERIT | ACE::ACE_FLAG_NO_PROPAGATE_INHERIT
             ],
             [
                 'type'     => ACE::ACE_TYPE_SYSTEM_AUDIT,
                 'add'      => [ACE::ACE_FLAG_SUCCESSFUL_ACCESS, ACE::ACE_FLAG_FAILED_ACCESS],
                 'remove'   => [],
-                'expected' => ACE::ACE_FLAG_SUCCESSFUL_ACCESS + ACE::ACE_FLAG_FAILED_ACCESS
+                'expected' => ACE::ACE_FLAG_SUCCESSFUL_ACCESS | ACE::ACE_FLAG_FAILED_ACCESS
             ],
             [
                 'type'     => ACE::ACE_TYPE_SYSTEM_AUDIT,
@@ -197,7 +197,7 @@ class FlagMaskTest extends \PHPUnit_Framework_TestCase
                 'type'     => ACE::ACE_TYPE_SYSTEM_ALARM,
                 'add'      => [ACE::ACE_FLAG_SUCCESSFUL_ACCESS, ACE::ACE_FLAG_FAILED_ACCESS],
                 'remove'   => [],
-                'expected' => ACE::ACE_FLAG_SUCCESSFUL_ACCESS + ACE::ACE_FLAG_FAILED_ACCESS
+                'expected' => ACE::ACE_FLAG_SUCCESSFUL_ACCESS | ACE::ACE_FLAG_FAILED_ACCESS
             ],
             [
                 'type'     => ACE::ACE_TYPE_SYSTEM_ALARM,
