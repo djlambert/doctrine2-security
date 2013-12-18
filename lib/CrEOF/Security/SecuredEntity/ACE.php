@@ -54,7 +54,7 @@ class ACE
     const ACE_FLAG_INHERIT_ONLY         = 0x00000008;
     const ACE_FLAG_SUCCESSFUL_ACCESS    = 0x00000010;
     const ACE_FLAG_FAILED_ACCESS        = 0x00000020;
-    const ACE_FLAG_IDENTIFIER_GROUP     = 0x00000040;
+    //const ACE_FLAG_IDENTIFIER_GROUP     = 0x00000040;
 
     /**
      * ACE masks
@@ -132,40 +132,5 @@ class ACE
         }
 
         return $this->properties[$name];
-    }
-
-    /**
-     * Set ACE sid
-     *
-     * @param mixed $sid
-     * @param bool  $isGroup
-     *
-     * @return ACE
-     */
-    public function setSid($sid, $isGroup = false)
-    {
-        if ($sid instanceof SID) {
-            $this->sid = $sid;
-        } else {
-            $this->sid = new SID($sid, $isGroup);
-        }
-
-        $this->flag &= ~self::ACE_FLAG_IDENTIFIER_GROUP;
-
-        if ($this->sid->isGroup()) {
-            $this->flag |= self::ACE_FLAG_IDENTIFIER_GROUP;
-        }
-
-        return $this;
-    }
-
-    /**
-     * Get ACE sid
-     *
-     * @return SID
-     */
-    public function getSid()
-    {
-        return $this->sid;
     }
 }

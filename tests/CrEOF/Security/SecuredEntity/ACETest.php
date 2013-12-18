@@ -64,47 +64,7 @@ class ACETest extends \PHPUnit_Framework_TestCase
      */
     public function aceBadTypeTest()
     {
-        $ace = new ACE(10);
-    }
-
-    /**
-     * @test
-     */
-    public function aceGroupSidTest()
-    {
-        $ace = new ACE();
-
-        $ace->setSid('security_group', true);
-
-        $this->assertEquals(true, $ace->getSid()->isGroup());
-        $this->assertEquals(false, $ace->getSid()->isSpecial());
-    }
-
-    /**
-     * @test
-     */
-    public function aceRegularSidTest()
-    {
-        $ace = new ACE();
-
-        $ace->setSid('JoeUser');
-
-        $this->assertEquals(false, $ace->getSid()->isGroup());
-        $this->assertEquals(false, $ace->getSid()->isSpecial());
-    }
-
-    /**
-     * @test
-     */
-    public function aceSpecialSidTest()
-    {
-        $ace = new ACE();
-
-        $ace->setSid('group');
-
-        $this->assertEquals(false, $ace->getSid()->isGroup());
-        $this->assertEquals(true, $ace->getSid()->isSpecial());
-        $this->assertEquals('GROUP@', $ace->getSid()->get());
+        new ACE(10);
     }
 
     /**
