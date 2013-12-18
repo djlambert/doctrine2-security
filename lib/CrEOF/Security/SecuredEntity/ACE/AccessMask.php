@@ -40,20 +40,20 @@ class AccessMask extends AbstractMask
      *
      * @var array
      */
-//    protected $lookupConstants = [
-//        ACE::ACE_MASK_VIEW             => 'ACE_MASK_VIEW',
-//        ACE::ACE_MASK_CREATE           => 'ACE_MASK_CREATE',
-//        ACE::ACE_MASK_MODIFY           => 'ACE_MASK_MODIFY',
-//        ACE::ACE_MASK_DELETE           => 'ACE_MASK_DELETE',
-//        ACE::ACE_MASK_UNDELETE         => 'ACE_MASK_UNDELETE',
-//        ACE::ACE_MASK_SEARCH           => 'ACE_MASK_SEARCH',
-//        ACE::ACE_MASK_READ_ATTRIBUTES  => 'ACE_MASK_READ_ATTRIBUTES',
-//        ACE::ACE_MASK_WRITE_ATTRIBUTES => 'ACE_MASK_WRITE_ATTRIBUTES',
-//        ACE::ACE_MASK_READ_ACL         => 'ACE_MASK_READ_ACL',
-//        ACE::ACE_MASK_WRITE_ACL        => 'ACE_MASK_WRITE_ACL',
-//        ACE::ACE_MASK_WRITE_OWNER      => 'ACE_MASK_WRITE_OWNER',
-//        ACE::ACE_MASK_FULL_CONTROL     => 'ACE_MASK_FULL_CONTROL'
-//    ];
+    protected $lookupConstants = [
+        ACE::ACE_MASK_VIEW             => 'ACE_MASK_VIEW',
+        ACE::ACE_MASK_CREATE           => 'ACE_MASK_CREATE',
+        ACE::ACE_MASK_MODIFY           => 'ACE_MASK_MODIFY',
+        ACE::ACE_MASK_DELETE           => 'ACE_MASK_DELETE',
+        ACE::ACE_MASK_UNDELETE         => 'ACE_MASK_UNDELETE',
+        ACE::ACE_MASK_SEARCH           => 'ACE_MASK_SEARCH',
+        ACE::ACE_MASK_READ_ATTRIBUTES  => 'ACE_MASK_READ_ATTRIBUTES',
+        ACE::ACE_MASK_WRITE_ATTRIBUTES => 'ACE_MASK_WRITE_ATTRIBUTES',
+        ACE::ACE_MASK_READ_ACL         => 'ACE_MASK_READ_ACL',
+        ACE::ACE_MASK_WRITE_ACL        => 'ACE_MASK_WRITE_ACL',
+        ACE::ACE_MASK_WRITE_OWNER      => 'ACE_MASK_WRITE_OWNER',
+        ACE::ACE_MASK_FULL_CONTROL     => 'ACE_MASK_FULL_CONTROL'
+    ];
 
     /**
      * Access mask token value lookup
@@ -83,15 +83,6 @@ class AccessMask extends AbstractMask
         'FULLCONTROL'      => ACE::ACE_MASK_FULL_CONTROL
     ];
 
-    /**
-     * @param int $mask
-     *
-     * @return bool
-     */
-    protected function isValid($mask)
-    {
-        return $mask === (ACE::ACE_MASK_FULL_CONTROL & $mask);
-    }
 
     /**
      * @param mixed $mask

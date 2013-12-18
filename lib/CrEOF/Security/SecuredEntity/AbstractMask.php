@@ -34,6 +34,23 @@ use CrEOF\Security\Exception\InvalidArgumentException;
 abstract class AbstractMask extends AbstractSimpleMask
 {
     /**
+     * @var int
+     */
+    protected $validMasks;
+
+    /**
+     * Constructor
+     *
+     * @param int $mask optional
+     */
+    public function __construct($mask = null)
+    {
+        $this->validMasks = $this->getValidMasks();
+
+        parent::__construct($mask);
+    }
+
+    /**
      * Adds a mask to the mask
      *
      * @param mixed $mask
@@ -100,5 +117,25 @@ abstract class AbstractMask extends AbstractSimpleMask
         }
 
         return parent::getMask($mask);
+    }
+
+    /**
+     * @param int $mask
+     *
+     * @return bool
+     */
+    protected function isValid($mask)
+    {
+        return $mask === ($this->validMasks & $mask);
+    }
+
+    /**
+     * @return int
+     */
+    protected function getValidMasks()
+    {
+        return array_reduce(array_keys($this->lookupConstants), function ($validMasks, $key) {
+            return $validMasks |= $key;
+        }, 0);
     }
 }

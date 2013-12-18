@@ -54,12 +54,12 @@ class SID
     /**
      * @var mixed
      */
-    protected $sid = null;
+    private $sid = null;
 
     /**
      * @var int
      */
-    protected $typeMask = 0;
+    private $type = 0;
 
     /**
      * Constructor
@@ -97,7 +97,7 @@ class SID
             $typeMask |= self::SID_TYPE_GROUP;
         }
 
-        $this->typeMask = $typeMask;
+        $this->type = $typeMask;
         $this->sid      = $sid;
 
         return $this;
@@ -120,7 +120,7 @@ class SID
      */
     public function isGroup()
     {
-        return self::SID_TYPE_GROUP === ($this->typeMask & self::SID_TYPE_GROUP);
+        return self::SID_TYPE_GROUP === ($this->type & self::SID_TYPE_GROUP);
     }
 
     /**
@@ -130,7 +130,7 @@ class SID
      */
     public function isSpecial()
     {
-        return self::SID_TYPE_SPECIAL === ($this->typeMask & self::SID_TYPE_SPECIAL);
+        return self::SID_TYPE_SPECIAL === ($this->type & self::SID_TYPE_SPECIAL);
     }
 
     /**
@@ -140,7 +140,7 @@ class SID
      *
      * @return bool
      */
-    protected function isSidSpecial(&$sid)
+    private function isSidSpecial(&$sid)
     {
         $localSid = strtoupper(preg_replace('/^([^@]+)@$/', '$1', $sid));
 

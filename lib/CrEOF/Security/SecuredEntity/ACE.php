@@ -25,7 +25,9 @@ namespace CrEOF\Security\SecuredEntity;
 
 use CrEOF\Security\Exception\InvalidArgumentException;
 use CrEOF\Security\SecuredEntity\ACE\AccessMask;
-use CrEOF\Security\SecuredEntity\ACE\FlagMask;
+use CrEOF\Security\SecuredEntity\ACE\AbstractFlagMask;
+use CrEOF\Security\SecuredEntity\ACE\AccessFlagMask;
+use CrEOF\Security\SecuredEntity\ACE\AuditFlagMask;
 use CrEOF\Security\SecuredEntity\ACE\TypeMask;
 
 /**
@@ -113,7 +115,7 @@ class ACE
     {
         $this->properties['type']   = new TypeMask($typeMask);
         $this->properties['access'] = new AccessMask();
-        $this->properties['flag']   = new FlagMask($typeMask);
+        $this->properties['flag']   = AbstractFlagMask::create($typeMask);
         $this->properties['sid']    = new SID();
     }
 
